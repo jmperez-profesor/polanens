@@ -16,6 +16,7 @@ Aplicación web de página única para gestionar coche compartido de entrenamien
   8. Gestión de vacaciones/excepciones por conductor.
   9. Estadísticas mensuales por conductor y por niña.
 - Gestión de conductores desde Ajustes (alta de nuevos conductores con color y teléfono opcional).
+- Visualización de versión de la app desde Ajustes.
 - Exportar/importar backup JSON completo.
 - Botón de duplicar estructura del mes anterior.
 - Semana actual destacada en el calendario.
