@@ -12,8 +12,3 @@ COMMIT_MSG="$1"
 git add .
 git commit -m "$COMMIT_MSG"
 git push origin master
-
-# Entrar en la carpeta 'iabd/' y desplegar con MkDocs
-cd iabd/ || { echo "No se pudo acceder al directorio 'iabd/'"; exit 2; }
-mkdocs gh-deploy --clean
-cd ..
