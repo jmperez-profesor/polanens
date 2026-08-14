@@ -176,6 +176,7 @@
             <select id="event-venue">
               <option>Silvia Martínez</option>
               <option>Lara González</option>
+              <option>Otro</option>
             </select>
           </label>
           <label>
@@ -336,6 +337,7 @@
             <select id="modal-event-venue">
               <option>Silvia Martínez</option>
               <option>Lara González</option>
+              <option>Otro</option>
             </select>
           </label>
           <label>
@@ -369,6 +371,46 @@
             <input id="modal-event-notes" type="text" />
           </label>
           <button class="btn full" type="submit">Guardar cambios</button>
+        </form>
+
+        <div class="panel-header modal-subheader">
+          <h3>Modificar viaje del evento</h3>
+        </div>
+        <form id="form-trip-modal" class="form-grid">
+          <label class="full">
+            <span>Viaje existente</span>
+            <select id="modal-trip-existing"></select>
+          </label>
+          <label>
+            <span>Conductor/a</span>
+            <select id="modal-trip-driver" required></select>
+          </label>
+          <label>
+            <span>Tipo de viaje</span>
+            <select id="modal-trip-type" required>
+              <option value="ida">Solo ida</option>
+              <option value="vuelta">Solo vuelta</option>
+              <option value="ida_y_vuelta">Ida y vuelta</option>
+            </select>
+          </label>
+          <label>
+            <span>Hora recogida</span>
+            <input id="modal-trip-pickup" type="time" />
+          </label>
+          <label>
+            <span>Hora entrega</span>
+            <input id="modal-trip-dropoff" type="time" />
+          </label>
+          <label class="full">
+            <span>Niñas (confirmada / si está / no va)</span>
+            <div id="modal-trip-kids" class="kids-picker"></div>
+          </label>
+          <label class="full">
+            <span>Observaciones</span>
+            <textarea id="modal-trip-notes" rows="2"></textarea>
+          </label>
+          <p id="modal-trip-warning" class="warning hidden"></p>
+          <button class="btn full" type="submit">Guardar viaje</button>
         </form>
       </div>
     </div>

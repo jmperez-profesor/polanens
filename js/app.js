@@ -13,6 +13,7 @@ const state = {
   editingTripId: null,
   editingSessionId: null,
   editingSessionModalId: null,
+  editingTripModalId: null,
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -200,6 +201,40 @@ function renderKidPicker() {
     `
     )
     .join("");
+}
+
+function renderModalKidPicker() {
+  $("#modal-trip-kids").innerHTML = state.kids
+    .filter((k) => k.active)
+    .map(
+      (k) => `
+      <div class="kid-row">
+        <label><input type="checkbox" data-modal-kid-check="${k.id}" checked /> ${esc(k.name)}</label>
+        <select data-modal-kid-status="${k.id}">
+          <option value="confirmada">confirmada</option>
+          <option value="si_esta">si está</option>
+          <option value="no_va">no va</option>
+        </select>
+      </div>
+    `
+    )
+    .join("");
+}
+
+function buildModalTripOptions(sessionId) {
+  const options = state.trips
+    .filter((t) => t.sessionId === sessionId)
+    .map((t) => {
+      const d = driverById(t.driverId);
+      return `<option value="${t.id}">${d?.name || "Sin conductor"} · ${tripTypeLabel(t.tripType)}</option>`;
+    })
+    .join("");
+  $("#modal-trip-existing").innerHTML = `<option value="">Nuevo viaje para este evento</option>${options}`;
+}
+
+function renderModalTripDriverOptions() {
+  const options = state.drivers.map((d) => `<option value="${d.id}">${esc(d.name)}</option>`).join("");
+  $("#modal-trip-driver").innerHTML = `<option value="">Selecciona</option>${options}`;
 }
 
 function renderTopBindings() {
@@ -498,6 +533,8 @@ function bindInputs() {
   $("#event-modal").addEventListener("click", (e) => {
     if (e.target.id === "event-modal") closeEventModal();
   });
+  $("#modal-trip-existing").addEventListener("change", fillModalTripFormFromSelected);
+  $("#modal-trip-driver").addEventListener("change", checkModalTripWarning);
 }
 
 function checkTripWarning() {
@@ -627,6 +664,20 @@ function toggleModalMatchFields() {
   $("#modal-event-home-away").toggleAttribute("required", isMatch);
 }
 
+function checkModalTripWarning() {
+  const driverId = $("#modal-trip-driver").value;
+  const warning = $("#modal-trip-warning");
+  warning.classList.add("hidden");
+  if (!driverId || !state.editingSessionModalId) return;
+  const session = state.sessions.find((s) => s.id === state.editingSessionModalId);
+  if (!session) return;
+  const v = inVacation(driverId, session.date);
+  if (v) {
+    warning.textContent = "Este conductor está de vacaciones en esa fecha.";
+    warning.classList.remove("hidden");
+  }
+}
+
 function fillEventFormFromSelected() {
   const eventId = $("#event-existing").value;
   if (!eventId) {
@@ -677,6 +728,7 @@ function openEventModal(sessionId) {
   const session = state.sessions.find((s) => s.id === sessionId);
   if (!session) return;
   state.editingSessionModalId = session.id;
+  state.editingTripModalId = null;
   $("#modal-event-date").value = session.date || "";
   $("#modal-event-start").value = session.startTime || "";
   $("#modal-event-end").value = session.endTime || "";
@@ -686,13 +738,22 @@ function openEventModal(sessionId) {
   $("#modal-event-opponent").value = session.opponent || "";
   $("#modal-event-home-away").value = session.homeAway || "";
   $("#modal-event-notes").value = session.notes || "";
+  renderModalTripDriverOptions();
+  renderModalKidPicker();
+  buildModalTripOptions(session.id);
+  $("#form-trip-modal").reset();
+  $("#modal-trip-existing").value = "";
+  $("#modal-trip-warning").classList.add("hidden");
   toggleModalMatchFields();
   $("#event-modal").classList.remove("hidden");
 }
 
 function closeEventModal() {
   state.editingSessionModalId = null;
+  state.editingTripModalId = null;
   $("#form-event-modal").reset();
+  $("#form-trip-modal").reset();
+  $("#modal-trip-warning").classList.add("hidden");
   $("#event-modal").classList.add("hidden");
 }
 
@@ -722,6 +783,80 @@ async function handleEventModalSubmit(ev) {
   });
   closeEventModal();
   await loadState();
+  renderAll();
+}
+
+function fillModalTripFormFromSelected() {
+  const tripId = $("#modal-trip-existing").value;
+  if (!tripId) {
+    state.editingTripModalId = null;
+    $("#form-trip-modal").reset();
+    renderModalTripDriverOptions();
+    renderModalKidPicker();
+    checkModalTripWarning();
+    return;
+  }
+  const trip = state.trips.find((t) => t.id === tripId);
+  if (!trip) return;
+  state.editingTripModalId = trip.id;
+  $("#modal-trip-driver").value = trip.driverId || "";
+  $("#modal-trip-type").value = trip.tripType || "ida_y_vuelta";
+  $("#modal-trip-pickup").value = trip.pickupTime || "";
+  $("#modal-trip-dropoff").value = trip.dropoffTime || "";
+  $("#modal-trip-notes").value = trip.notes || "";
+  state.kids.forEach((k) => {
+    const entry = trip.kids.find((kk) => kk.kidId === k.id);
+    const check = $(`[data-modal-kid-check="${k.id}"]`);
+    const select = $(`[data-modal-kid-status="${k.id}"]`);
+    if (!check || !select) return;
+    if (!entry || entry.status === "no_va") {
+      check.checked = false;
+      select.value = "no_va";
+    } else {
+      check.checked = true;
+      select.value = entry.status;
+    }
+  });
+  checkModalTripWarning();
+}
+
+async function handleTripModalSubmit(ev) {
+  ev.preventDefault();
+  if (!state.editingSessionModalId) return;
+  const driverId = $("#modal-trip-driver").value;
+  if (!driverId) return;
+  const session = state.sessions.find((s) => s.id === state.editingSessionModalId);
+  if (!session) return;
+  const v = inVacation(driverId, session.date);
+  if (v) {
+    alert("No se puede asignar: conductor en vacaciones.");
+    return;
+  }
+  const kids = state.kids
+    .filter((k) => k.active)
+    .map((k) => {
+      const checked = $(`[data-modal-kid-check="${k.id}"]`)?.checked;
+      const status = $(`[data-modal-kid-status="${k.id}"]`)?.value || "confirmada";
+      if (!checked) return { kidId: k.id, status: "no_va" };
+      return { kidId: k.id, status };
+    });
+  await db.put("trips", {
+    id: state.editingTripModalId || db.uid(),
+    sessionId: state.editingSessionModalId,
+    driverId,
+    tripType: $("#modal-trip-type").value,
+    kids,
+    pickupTime: $("#modal-trip-pickup").value,
+    dropoffTime: $("#modal-trip-dropoff").value,
+    notes: $("#modal-trip-notes").value.trim(),
+  });
+  await loadState();
+  buildModalTripOptions(state.editingSessionModalId);
+  state.editingTripModalId = null;
+  $("#form-trip-modal").reset();
+  renderModalTripDriverOptions();
+  renderModalKidPicker();
+  checkModalTripWarning();
   renderAll();
 }
 
@@ -966,6 +1101,7 @@ function bindFormsAndButtons() {
   $("#form-driver").addEventListener("submit", handleDriverSubmit);
   $("#form-kid").addEventListener("submit", handleKidSubmit);
   $("#form-trip").addEventListener("submit", handleTripSubmit);
+  $("#form-trip-modal").addEventListener("submit", handleTripModalSubmit);
   $("#form-import-sessions").addEventListener("submit", handleImportSessions);
   $("#form-event").addEventListener("submit", handleEventSubmit);
   $("#form-event-modal").addEventListener("submit", handleEventModalSubmit);
