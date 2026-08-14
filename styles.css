@@ -1,0 +1,285 @@
+:root {
+  --bg: #f4f6fb;
+  --panel: #ffffff;
+  --text: #0f172a;
+  --muted: #475569;
+  --line: #dbe2ea;
+  --primary: #2563eb;
+  --warning: #b45309;
+}
+
+body.dark {
+  --bg: #0b1220;
+  --panel: #121b2c;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --line: #23314a;
+  --primary: #60a5fa;
+  --warning: #f59e0b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.topbar {
+  padding: 0.9rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.topbar h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.topbar-actions,
+.inline {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  padding: 0.7rem 0.4rem;
+  font-size: 0.85rem;
+}
+
+.tab.is-active {
+  color: var(--text);
+  background: color-mix(in oklab, var(--panel) 70%, var(--primary) 30%);
+  font-weight: 600;
+}
+
+main {
+  padding: 0.8rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.view {
+  display: none;
+}
+
+.view.is-active {
+  display: block;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+
+.panel-header h2,
+.panel-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.btn {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--primary);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  padding: 0.8rem;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  background: var(--panel);
+  color: var(--text);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.day-name,
+.day {
+  border: 1px solid var(--line);
+  border-radius: 0.55rem;
+  background: var(--panel);
+  min-height: 68px;
+  padding: 0.4rem;
+}
+
+.day-name {
+  min-height: auto;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.day .num {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.day.is-holiday {
+  outline: 2px dashed #f59e0b;
+}
+
+.session-card {
+  margin-top: 0.35rem;
+  padding: 0.32rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+}
+
+.trip-card {
+  margin-top: 0.25rem;
+  border-left: 4px solid #000;
+  padding: 0.3rem;
+  border-radius: 0.35rem;
+  background: color-mix(in oklab, var(--panel) 86%, #000 14%);
+  font-size: 0.72rem;
+}
+
+.trip-card .meta {
+  color: var(--muted);
+}
+
+.badge {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  padding: 0.08rem 0.45rem;
+}
+
+.badge.cond {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.badge.out {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.driver-chip {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 0.35rem;
+}
+
+.kids-picker {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.kid-row {
+  display: grid;
+  grid-template-columns: 1fr 150px;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.warning {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 780px) {
+  .tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-grid,
+  .kid-row {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-grid {
+    gap: 0.25rem;
+  }
+}

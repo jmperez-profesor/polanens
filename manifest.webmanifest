@@ -1,0 +1,10 @@
+{
+  "name": "Reparto Voleibol Santa Pola",
+  "short_name": "Reparto Volley",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0f172a",
+  "lang": "es",
+  "icons": []
+}
