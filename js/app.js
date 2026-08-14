@@ -86,9 +86,10 @@ function sessionCategoryLabel(session) {
 function sessionSummary(session) {
   let info = `${session.date} · ${session.startTime}-${session.endTime} · ${esc(session.venue)} (${session.type})`;
   if (session.category === "partido") {
-    const where = session.homeAway ? ` · ${session.homeAway}` : "";
-    const rival = session.opponent ? ` vs ${esc(session.opponent)}` : "";
-    info += ` · Partido${rival}${where}`;
+    const rival = session.opponent?.trim();
+    if (rival && session.homeAway === "casa") info += ` · Polanens vs ${esc(rival)}`;
+    else if (rival && session.homeAway === "fuera") info += ` · ${esc(rival)} vs Polanens`;
+    else info += ` · Partido`;
   }
   return info;
 }
@@ -289,9 +290,10 @@ function renderCalendar() {
       .forEach((session) => {
         html += `<div class="session-card calendar-session-card" data-session-id="${session.id}"><strong>${session.startTime}-${session.endTime}</strong> · ${esc(session.venue)} <span class="badge">${sessionCategoryLabel(session)}</span>`;
         if (session.category === "partido") {
-          const rival = session.opponent ? ` · vs ${esc(session.opponent)}` : "";
-          const where = session.homeAway ? ` · ${esc(session.homeAway)}` : "";
-          html += `<div class="meta">🏐 Partido${rival}${where}</div>`;
+          const rival = session.opponent?.trim();
+          if (rival && session.homeAway === "casa") html += `<div class="meta">🏐 Polanens vs ${esc(rival)}</div>`;
+          else if (rival && session.homeAway === "fuera") html += `<div class="meta">🏐 ${esc(rival)} vs Polanens</div>`;
+          else html += `<div class="meta">🏐 Partido</div>`;
         }
         if (session.notes) html += `<div class="meta">${esc(session.notes)}</div>`;
         (tripsBySession[session.id] || []).forEach((trip) => {
