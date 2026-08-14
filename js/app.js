@@ -1,6 +1,8 @@
 import { db } from "./db.js";
 import { seedAugustData } from "./seed.js";
 
+const APP_VERSION = "v1.0.0";
+
 const state = {
   settings: null,
   drivers: [],
@@ -10,6 +12,7 @@ const state = {
   activeTab: "calendar",
   editingTripId: null,
   editingSessionId: null,
+  editingSessionModalId: null,
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -119,6 +122,17 @@ async function ensureRamonDriver() {
   state.drivers = await db.getAll("drivers");
 }
 
+async function ensureValentinaKid() {
+  const exists = state.kids.some((k) => normalizeName(k.name) === normalizeName("valentina"));
+  if (exists) return;
+  await db.put("kids", {
+    id: db.uid(),
+    name: "Valentina",
+    active: true,
+  });
+  state.kids = await db.getAll("kids");
+}
+
 function getMonthData(month) {
   const sessions = state.sessions.filter((s) => s.date.startsWith(month));
   const sessionMap = Object.fromEntries(sessions.map((s) => [s.id, s]));
@@ -191,6 +205,7 @@ function renderKidPicker() {
 function renderTopBindings() {
   $("#active-month").value = state.settings.activeMonth;
   document.body.classList.toggle("dark", !!state.settings.darkMode);
+  $("#app-version").textContent = `Reparto Voleibol ${APP_VERSION}`;
 }
 
 function renderCalendar() {
@@ -237,7 +252,7 @@ function renderCalendar() {
     daySessions
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
       .forEach((session) => {
-        html += `<div class="session-card"><strong>${session.startTime}-${session.endTime}</strong> · ${esc(session.venue)} <span class="badge">${sessionCategoryLabel(session)}</span>`;
+        html += `<div class="session-card calendar-session-card" data-session-id="${session.id}"><strong>${session.startTime}-${session.endTime}</strong> · ${esc(session.venue)} <span class="badge">${sessionCategoryLabel(session)}</span>`;
         if (session.category === "partido") {
           const rival = session.opponent ? ` · vs ${esc(session.opponent)}` : "";
           const where = session.homeAway ? ` · ${esc(session.homeAway)}` : "";
@@ -399,6 +414,24 @@ function renderDriversAdmin() {
   $("#drivers-admin-list").innerHTML = items || `<p class="hint">Sin conductores.</p>`;
 }
 
+function renderKidsAdmin() {
+  const items = state.kids
+    .sort((a, b) => a.name.localeCompare(b.name, "es"))
+    .map((k) => {
+      const tripsCount = state.trips.reduce((sum, trip) => {
+        const entry = trip.kids.find((kk) => kk.kidId === k.id);
+        return entry && entry.status !== "no_va" ? sum + 1 : sum;
+      }, 0);
+      return `<div class="session-card">
+        <strong>${esc(k.name)}</strong>
+        <div class="meta">Participaciones: ${tripsCount}</div>
+        <button class="btn ghost" data-del-kid="${k.id}">Eliminar</button>
+      </div>`;
+    })
+    .join("");
+  $("#kids-admin-list").innerHTML = items || `<p class="hint">Sin niñas.</p>`;
+}
+
 function renderDriverSelectors() {
   const options = state.drivers
     .map((d) => `<option value="${d.id}">${esc(d.name)}</option>`)
@@ -422,6 +455,7 @@ function renderAll() {
   renderVacationList();
   renderHolidayList();
   renderDriversAdmin();
+  renderKidsAdmin();
 }
 
 function bindTabs() {
@@ -458,6 +492,12 @@ function bindInputs() {
   $("#trip-existing").addEventListener("change", fillTripFormFromSelected);
   $("#event-existing").addEventListener("change", fillEventFormFromSelected);
   $("#event-category").addEventListener("change", toggleMatchFields);
+  $("#modal-event-category").addEventListener("change", toggleModalMatchFields);
+  $("#calendar-grid").addEventListener("click", handleCalendarClick);
+  $("#close-event-modal").addEventListener("click", closeEventModal);
+  $("#event-modal").addEventListener("click", (e) => {
+    if (e.target.id === "event-modal") closeEventModal();
+  });
 }
 
 function checkTripWarning() {
@@ -581,6 +621,12 @@ function toggleMatchFields() {
   $("#event-home-away").toggleAttribute("required", isMatch);
 }
 
+function toggleModalMatchFields() {
+  const isMatch = $("#modal-event-category").value === "partido";
+  $("#modal-event-opponent").toggleAttribute("required", isMatch);
+  $("#modal-event-home-away").toggleAttribute("required", isMatch);
+}
+
 function fillEventFormFromSelected() {
   const eventId = $("#event-existing").value;
   if (!eventId) {
@@ -623,6 +669,58 @@ async function handleEventSubmit(ev) {
   });
   ev.target.reset();
   state.editingSessionId = null;
+  await loadState();
+  renderAll();
+}
+
+function openEventModal(sessionId) {
+  const session = state.sessions.find((s) => s.id === sessionId);
+  if (!session) return;
+  state.editingSessionModalId = session.id;
+  $("#modal-event-date").value = session.date || "";
+  $("#modal-event-start").value = session.startTime || "";
+  $("#modal-event-end").value = session.endTime || "";
+  $("#modal-event-venue").value = session.venue || "Silvia Martínez";
+  $("#modal-event-type").value = session.type || "tarde";
+  $("#modal-event-category").value = session.category || "entrenamiento";
+  $("#modal-event-opponent").value = session.opponent || "";
+  $("#modal-event-home-away").value = session.homeAway || "";
+  $("#modal-event-notes").value = session.notes || "";
+  toggleModalMatchFields();
+  $("#event-modal").classList.remove("hidden");
+}
+
+function closeEventModal() {
+  state.editingSessionModalId = null;
+  $("#form-event-modal").reset();
+  $("#event-modal").classList.add("hidden");
+}
+
+function handleCalendarClick(ev) {
+  const card = ev.target.closest(".calendar-session-card");
+  if (!card) return;
+  const { sessionId } = card.dataset;
+  if (!sessionId) return;
+  openEventModal(sessionId);
+}
+
+async function handleEventModalSubmit(ev) {
+  ev.preventDefault();
+  if (!state.editingSessionModalId) return;
+  const category = $("#modal-event-category").value;
+  await db.put("sessions", {
+    id: state.editingSessionModalId,
+    date: $("#modal-event-date").value,
+    startTime: $("#modal-event-start").value,
+    endTime: $("#modal-event-end").value,
+    venue: $("#modal-event-venue").value,
+    type: $("#modal-event-type").value,
+    category,
+    opponent: category === "partido" ? $("#modal-event-opponent").value.trim() : "",
+    homeAway: category === "partido" ? $("#modal-event-home-away").value : "",
+    notes: $("#modal-event-notes").value.trim(),
+  });
+  closeEventModal();
   await loadState();
   renderAll();
 }
@@ -698,6 +796,41 @@ async function handleDriverSubmit(ev) {
   });
   ev.target.reset();
   $("#driver-color").value = "#f97316";
+  await loadState();
+  renderAll();
+}
+
+async function handleKidSubmit(ev) {
+  ev.preventDefault();
+  const name = $("#kid-name").value.trim();
+  if (!name) return;
+  const exists = state.kids.some((k) => normalizeName(k.name) === normalizeName(name));
+  if (exists) {
+    alert("Esa niña ya existe.");
+    return;
+  }
+  await db.put("kids", {
+    id: db.uid(),
+    name,
+    active: true,
+  });
+  ev.target.reset();
+  await loadState();
+  renderAll();
+}
+
+async function handleKidDelete(ev) {
+  const id = ev.target.dataset.delKid;
+  if (!id) return;
+  const child = kidById(id);
+  const ok = confirm(`¿Eliminar a ${child?.name || "esta niña"} del listado?`);
+  if (!ok) return;
+  const affectedTrips = state.trips.filter((trip) => trip.kids.some((k) => k.kidId === id));
+  for (const trip of affectedTrips) {
+    const nextKids = trip.kids.filter((k) => k.kidId !== id);
+    await db.put("trips", { ...trip, kids: nextKids });
+  }
+  await db.delete("kids", id);
   await loadState();
   renderAll();
 }
@@ -831,13 +964,16 @@ function fillTripFormFromSelected() {
 
 function bindFormsAndButtons() {
   $("#form-driver").addEventListener("submit", handleDriverSubmit);
+  $("#form-kid").addEventListener("submit", handleKidSubmit);
   $("#form-trip").addEventListener("submit", handleTripSubmit);
   $("#form-import-sessions").addEventListener("submit", handleImportSessions);
   $("#form-event").addEventListener("submit", handleEventSubmit);
+  $("#form-event-modal").addEventListener("submit", handleEventModalSubmit);
   $("#form-vacation").addEventListener("submit", handleVacationSubmit);
   $("#form-holiday").addEventListener("submit", handleHolidaySubmit);
   $("#vacations-list").addEventListener("click", handleVacationDelete);
   $("#holidays-list").addEventListener("click", handleHolidayDelete);
+  $("#kids-admin-list").addEventListener("click", handleKidDelete);
   $("#export-json").addEventListener("click", exportJson);
   $("#import-json").addEventListener("change", (e) => importJson(e.target.files[0]));
   $("#duplicate-month").addEventListener("click", duplicatePreviousMonth);
@@ -864,11 +1000,13 @@ async function init() {
   if (!settings?.seeded) await seedAugustData();
   await loadState();
   await ensureRamonDriver();
+  await ensureValentinaKid();
   bindTabs();
   bindInputs();
   bindFormsAndButtons();
   renderAll();
   toggleMatchFields();
+  toggleModalMatchFields();
   await initPWA();
 }
 

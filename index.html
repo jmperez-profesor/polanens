@@ -243,6 +243,18 @@
         </form>
         <div id="drivers-admin-list"></div>
 
+        <div class="panel-header">
+          <h3>Niñas</h3>
+        </div>
+        <form id="form-kid" class="form-grid">
+          <label>
+            <span>Nombre</span>
+            <input id="kid-name" type="text" placeholder="Ej: Valentina" required />
+          </label>
+          <button class="btn" type="submit">Añadir niña</button>
+        </form>
+        <div id="kids-admin-list"></div>
+
         <form id="form-vacation" class="form-grid">
           <label>
             <span>Conductor/a</span>
@@ -299,6 +311,67 @@
         </div>
       </section>
     </main>
+
+    <div id="event-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="event-modal-title">
+      <div class="modal-card">
+        <div class="panel-header">
+          <h3 id="event-modal-title">Editar evento</h3>
+          <button id="close-event-modal" type="button" class="btn ghost">Cerrar</button>
+        </div>
+        <form id="form-event-modal" class="form-grid">
+          <label>
+            <span>Fecha</span>
+            <input id="modal-event-date" type="date" required />
+          </label>
+          <label>
+            <span>Hora inicio</span>
+            <input id="modal-event-start" type="time" required />
+          </label>
+          <label>
+            <span>Hora fin</span>
+            <input id="modal-event-end" type="time" required />
+          </label>
+          <label>
+            <span>Pabellón</span>
+            <select id="modal-event-venue">
+              <option>Silvia Martínez</option>
+              <option>Lara González</option>
+            </select>
+          </label>
+          <label>
+            <span>Tipo horario</span>
+            <select id="modal-event-type">
+              <option value="mañana">mañana</option>
+              <option value="tarde">tarde</option>
+            </select>
+          </label>
+          <label>
+            <span>Evento</span>
+            <select id="modal-event-category">
+              <option value="entrenamiento">Entrenamiento</option>
+              <option value="partido">Partido (fin de semana)</option>
+            </select>
+          </label>
+          <label>
+            <span>Rival (partido)</span>
+            <input id="modal-event-opponent" type="text" placeholder="Ej: CV Elche" />
+          </label>
+          <label>
+            <span>Casa / fuera</span>
+            <select id="modal-event-home-away">
+              <option value="">—</option>
+              <option value="casa">Casa</option>
+              <option value="fuera">Fuera</option>
+            </select>
+          </label>
+          <label class="full">
+            <span>Notas</span>
+            <input id="modal-event-notes" type="text" />
+          </label>
+          <button class="btn full" type="submit">Guardar cambios</button>
+        </form>
+      </div>
+    </div>
 
     <template id="driver-chip-template">
       <span class="driver-chip"></span>

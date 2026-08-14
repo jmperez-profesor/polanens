@@ -37,7 +37,7 @@ export async function seedAugustData({ force = false } = {}) {
   }));
   const driverByName = Object.fromEntries(drivers.map((d) => [d.name, d]));
 
-  const kids = ["Aina", "Nerea", "Blanca", "Martina"].map((name) => ({
+  const kids = ["Aina", "Nerea", "Blanca", "Martina", "Valentina"].map((name) => ({
     id: db.uid(),
     name,
     active: true,

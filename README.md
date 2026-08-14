@@ -11,11 +11,12 @@ Aplicación web de página única para gestionar coche compartido de entrenamien
   3. Vista por niña con su historial del mes.
   4. Alta de viajes (incluye estado `confirmada / si está / no va`).
   5. Importación masiva de entrenamientos/eventos por bloque de texto.
-  6. Edición de eventos para cambios de última hora.
+  6. Edición de eventos para cambios de última hora (formulario y clic directo en calendario con pop-up).
   7. Partidos de fin de semana (hora, rival y casa/fuera).
   8. Gestión de vacaciones/excepciones por conductor.
   9. Estadísticas mensuales por conductor y por niña.
 - Gestión de conductores desde Ajustes (alta de nuevos conductores con color y teléfono opcional).
+- Gestión de niñas desde Ajustes (alta y eliminación), incluyendo Valentina por defecto.
 - Visualización de versión de la app desde Ajustes.
 - Exportar/importar backup JSON completo.
 - Botón de duplicar estructura del mes anterior.
@@ -23,7 +24,7 @@ Aplicación web de página única para gestionar coche compartido de entrenamien
 - Semanas anteriores en tamaño reducido para no saturar la vista.
 - Modo oscuro.
 - Offline-first con Service Worker + manifest (PWA básica).
-- Semilla inicial con datos reales de agosto (botón “Cargar datos de ejemplo”), incluyendo a Ramón como conductor.
+- Semilla inicial con datos reales de agosto (botón “Cargar datos de ejemplo”), incluyendo a Ramón como conductor y a Valentina en el listado de niñas.
 
 ## Estructura
 
