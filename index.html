@@ -223,6 +223,26 @@
         <div class="panel-header">
           <h2>Ajustes y backup</h2>
         </div>
+        <div class="panel-header">
+          <h3>Conductores</h3>
+        </div>
+        <form id="form-driver" class="form-grid">
+          <label>
+            <span>Nombre</span>
+            <input id="driver-name" type="text" placeholder="Ej: Ramón" required />
+          </label>
+          <label>
+            <span>Color identificativo</span>
+            <input id="driver-color" type="color" value="#f97316" />
+          </label>
+          <label class="full">
+            <span>Teléfono (opcional)</span>
+            <input id="driver-phone" type="tel" placeholder="Ej: 600123123" />
+          </label>
+          <button class="btn" type="submit">Añadir conductor</button>
+        </form>
+        <div id="drivers-admin-list"></div>
+
         <form id="form-vacation" class="form-grid">
           <label>
             <span>Conductor/a</span>

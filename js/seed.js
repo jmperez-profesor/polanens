@@ -5,6 +5,7 @@ const driverColors = {
   Loli: "#2563eb",
   Sonia: "#16a34a",
   Carpena: "#9333ea",
+  "Ramón": "#f97316",
 };
 
 function toDate(year, month, day) {
@@ -28,7 +29,7 @@ export async function seedAugustData({ force = false } = {}) {
 
   await Promise.all(["drivers", "kids", "sessions", "trips"].map((store) => db.clear(store)));
 
-  const drivers = ["Vanesa", "Loli", "Sonia", "Carpena"].map((name) => ({
+  const drivers = ["Vanesa", "Loli", "Sonia", "Carpena", "Ramón"].map((name) => ({
     id: db.uid(),
     name,
     phone: "",

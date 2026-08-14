@@ -9,6 +9,7 @@ const state = {
   trips: [],
   activeTab: "calendar",
   editingTripId: null,
+  editingSessionId: null,
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -19,6 +20,10 @@ const weekJsToIso = (d) => (d === 0 ? 7 : d);
 
 function esc(str = "") {
   return str.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+}
+
+function normalizeName(value = "") {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
 
 function monthParts(month) {
@@ -45,6 +50,19 @@ function monthLabel(month) {
   return new Date(y, m - 1, 1).toLocaleDateString("es-ES", { month: "long", year: "numeric" });
 }
 
+function currentMonthString() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function weekStart(date) {
+  const d = new Date(date);
+  const iso = weekJsToIso(d.getDay());
+  d.setDate(d.getDate() - iso + 1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 function addMonths(month, delta) {
   const [y, m] = month.split("-").map(Number);
   const date = new Date(y, m - 1 + delta, 1);
@@ -55,6 +73,20 @@ function tripTypeLabel(type) {
   if (type === "ida") return "solo ida";
   if (type === "vuelta") return "solo vuelta";
   return "ida y vuelta";
+}
+
+function sessionCategoryLabel(session) {
+  return session.category === "partido" ? "Partido" : "Entrenamiento";
+}
+
+function sessionSummary(session) {
+  let info = `${session.date} · ${session.startTime}-${session.endTime} · ${esc(session.venue)} (${session.type})`;
+  if (session.category === "partido") {
+    const where = session.homeAway ? ` · ${session.homeAway}` : "";
+    const rival = session.opponent ? ` vs ${esc(session.opponent)}` : "";
+    info += ` · Partido${rival}${where}`;
+  }
+  return info;
 }
 
 function kidStatusBadge(status) {
@@ -73,6 +105,18 @@ async function loadState() {
   state.kids = await db.getAll("kids");
   state.sessions = await db.getAll("sessions");
   state.trips = await db.getAll("trips");
+}
+
+async function ensureRamonDriver() {
+  const exists = state.drivers.some((d) => normalizeName(d.name) === normalizeName("ramón"));
+  if (exists) return;
+  await db.put("drivers", {
+    id: db.uid(),
+    name: "Ramón",
+    color: "#f97316",
+    phone: "",
+  });
+  state.drivers = await db.getAll("drivers");
 }
 
 function getMonthData(month) {
@@ -95,12 +139,18 @@ function buildSessionOptions() {
   const { sessions } = getMonthData(month);
   const options = sessions
     .sort((a, b) => `${a.date}${a.startTime}`.localeCompare(`${b.date}${b.startTime}`))
-    .map(
-      (s) =>
-        `<option value="${s.id}">${s.date} · ${s.startTime}-${s.endTime} · ${esc(s.venue)} (${s.type})</option>`
-    )
+    .map((s) => `<option value="${s.id}">${sessionSummary(s)}</option>`)
     .join("");
-  $("#trip-session").innerHTML = `<option value="">Selecciona entrenamiento</option><option value="__new__">+ Crear nuevo</option>${options}`;
+  $("#trip-session").innerHTML = `<option value="">Selecciona evento</option><option value="__new__">+ Crear nuevo</option>${options}`;
+}
+
+function buildEventExistingOptions() {
+  const { sessions } = getMonthData(state.settings.activeMonth);
+  const options = sessions
+    .sort((a, b) => `${a.date}${a.startTime}`.localeCompare(`${b.date}${b.startTime}`))
+    .map((s) => `<option value="${s.id}">${sessionSummary(s)}</option>`)
+    .join("");
+  $("#event-existing").innerHTML = `<option value="">Nuevo evento</option>${options}`;
 }
 
 function buildTripExistingOptions() {
@@ -160,6 +210,9 @@ function renderCalendar() {
   const { start, end } = startEndForMonth(month);
   const firstIso = weekJsToIso(start.getDay());
   const daysInMonth = end.getDate();
+  const currentMonth = currentMonthString();
+  const now = new Date();
+  const currentWeekStart = weekStart(now);
 
   let html = "";
   dayNames.forEach((d) => {
@@ -168,15 +221,28 @@ function renderCalendar() {
   for (let i = 1; i < firstIso; i += 1) html += `<div class="day"></div>`;
 
   for (let day = 1; day <= daysInMonth; day += 1) {
-    const date = formatDate(new Date(start.getFullYear(), start.getMonth(), day));
+    const dateObj = new Date(start.getFullYear(), start.getMonth(), day);
+    const date = formatDate(dateObj);
     const daySessions = sessionByDate[date] || [];
     const holiday = (state.settings.holidays || []).find((h) => h.date === date);
-    html += `<div class="day ${holiday ? "is-holiday" : ""}"><div class="num">${day}</div>`;
+    const classes = ["day"];
+    if (holiday) classes.push("is-holiday");
+    if (month === currentMonth) {
+      const ws = weekStart(dateObj);
+      if (ws.getTime() === currentWeekStart.getTime()) classes.push("is-current-week");
+      else if (ws < currentWeekStart) classes.push("is-past-week");
+    }
+    html += `<div class="${classes.join(" ")}"><div class="num">${day}</div>`;
     if (holiday) html += `<div class="meta">${esc(holiday.note || "Festivo")}</div>`;
     daySessions
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
       .forEach((session) => {
-        html += `<div class="session-card"><strong>${session.startTime}-${session.endTime}</strong> · ${esc(session.venue)}`;
+        html += `<div class="session-card"><strong>${session.startTime}-${session.endTime}</strong> · ${esc(session.venue)} <span class="badge">${sessionCategoryLabel(session)}</span>`;
+        if (session.category === "partido") {
+          const rival = session.opponent ? ` · vs ${esc(session.opponent)}` : "";
+          const where = session.homeAway ? ` · ${esc(session.homeAway)}` : "";
+          html += `<div class="meta">🏐 Partido${rival}${where}</div>`;
+        }
         if (session.notes) html += `<div class="meta">${esc(session.notes)}</div>`;
         (tripsBySession[session.id] || []).forEach((trip) => {
           const driver = driverById(trip.driverId);
@@ -222,7 +288,7 @@ function renderDriverView() {
     })
     .join("");
 
-  $("#drivers-summary").innerHTML = `<p><strong>${monthLabel(state.settings.activeMonth)}</strong> · ${sessions.length} entrenamientos</p>`;
+  $("#drivers-summary").innerHTML = `<p><strong>${monthLabel(state.settings.activeMonth)}</strong> · ${sessions.length} eventos</p>`;
   $("#drivers-list").innerHTML = `<table class="table">
     <thead><tr><th>Conductor/a</th><th>Total viajes</th><th>Detalle</th></tr></thead>
     <tbody>${rows}</tbody>
@@ -318,6 +384,21 @@ function renderHolidayList() {
   $("#holidays-list").innerHTML = items || `<p class="hint">Sin festivos registrados.</p>`;
 }
 
+function renderDriversAdmin() {
+  const items = state.drivers
+    .sort((a, b) => a.name.localeCompare(b.name, "es"))
+    .map((d) => {
+      const totalTrips = state.trips.filter((t) => t.driverId === d.id).length;
+      return `<div class="session-card">
+        <strong><span class="driver-chip" style="background:${d.color}"></span>${esc(d.name)}</strong>
+        ${d.phone ? ` · ${esc(d.phone)}` : ""}
+        <div class="meta">Viajes totales: ${totalTrips}</div>
+      </div>`;
+    })
+    .join("");
+  $("#drivers-admin-list").innerHTML = items || `<p class="hint">Sin conductores.</p>`;
+}
+
 function renderDriverSelectors() {
   const options = state.drivers
     .map((d) => `<option value="${d.id}">${esc(d.name)}</option>`)
@@ -330,6 +411,7 @@ function renderDriverSelectors() {
 function renderAll() {
   renderTopBindings();
   buildSessionOptions();
+  buildEventExistingOptions();
   buildTripExistingOptions();
   renderDriverSelectors();
   renderKidPicker();
@@ -339,6 +421,7 @@ function renderAll() {
   renderStats();
   renderVacationList();
   renderHolidayList();
+  renderDriversAdmin();
 }
 
 function bindTabs() {
@@ -373,6 +456,8 @@ function bindInputs() {
   $("#trip-session").addEventListener("change", checkTripWarning);
   $("#driver-filter").addEventListener("change", renderDriverView);
   $("#trip-existing").addEventListener("change", fillTripFormFromSelected);
+  $("#event-existing").addEventListener("change", fillEventFormFromSelected);
+  $("#event-category").addEventListener("change", toggleMatchFields);
 }
 
 function checkTripWarning() {
@@ -406,6 +491,9 @@ async function handleTripSubmit(ev) {
       venue: $("#new-session-venue").value,
       type: $("#new-session-type").value,
       notes: $("#new-session-notes").value.trim(),
+      category: "entrenamiento",
+      opponent: "",
+      homeAway: "",
     };
     if (!s.date || !s.startTime || !s.endTime) return;
     await db.put("sessions", s);
@@ -452,7 +540,7 @@ async function handleTripSubmit(ev) {
 function parseSessionLine(line, activeMonth) {
   const parts = line.split(",").map((p) => p.trim());
   if (parts.length < 3) return null;
-  let [dateRaw, startTime, endTime, venue, type, notes] = parts;
+  let [dateRaw, startTime, endTime, venue, type, notes, category, opponent, homeAway] = parts;
   if (!dateRaw.includes("-")) {
     const day = Number(dateRaw);
     if (!Number.isFinite(day)) return null;
@@ -466,6 +554,9 @@ function parseSessionLine(line, activeMonth) {
     venue: venue || "Silvia Martínez",
     type: type || (startTime < "14:00" ? "mañana" : "tarde"),
     notes: notes || "",
+    category: category || "entrenamiento",
+    opponent: opponent || "",
+    homeAway: homeAway || "",
   };
 }
 
@@ -480,6 +571,58 @@ async function handleImportSessions(ev) {
   if (!sessions.length) return;
   await db.bulkPut("sessions", sessions);
   ev.target.reset();
+  await loadState();
+  renderAll();
+}
+
+function toggleMatchFields() {
+  const isMatch = $("#event-category").value === "partido";
+  $("#event-opponent").toggleAttribute("required", isMatch);
+  $("#event-home-away").toggleAttribute("required", isMatch);
+}
+
+function fillEventFormFromSelected() {
+  const eventId = $("#event-existing").value;
+  if (!eventId) {
+    state.editingSessionId = null;
+    $("#form-event").reset();
+    toggleMatchFields();
+    return;
+  }
+  const session = state.sessions.find((s) => s.id === eventId);
+  if (!session) return;
+  state.editingSessionId = session.id;
+  $("#event-date").value = session.date || "";
+  $("#event-start").value = session.startTime || "";
+  $("#event-end").value = session.endTime || "";
+  $("#event-venue").value = session.venue || "Silvia Martínez";
+  $("#event-type").value = session.type || "tarde";
+  $("#event-category").value = session.category || "entrenamiento";
+  $("#event-opponent").value = session.opponent || "";
+  $("#event-home-away").value = session.homeAway || "";
+  $("#event-notes").value = session.notes || "";
+  toggleMatchFields();
+}
+
+async function handleEventSubmit(ev) {
+  ev.preventDefault();
+  const category = $("#event-category").value;
+  const date = $("#event-date").value;
+  if (!date) return;
+  await db.put("sessions", {
+    id: state.editingSessionId || db.uid(),
+    date,
+    startTime: $("#event-start").value,
+    endTime: $("#event-end").value,
+    venue: $("#event-venue").value,
+    type: $("#event-type").value,
+    category,
+    opponent: category === "partido" ? $("#event-opponent").value.trim() : "",
+    homeAway: category === "partido" ? $("#event-home-away").value : "",
+    notes: $("#event-notes").value.trim(),
+  });
+  ev.target.reset();
+  state.editingSessionId = null;
   await loadState();
   renderAll();
 }
@@ -534,6 +677,27 @@ async function handleHolidayDelete(ev) {
   if (!id) return;
   const holidays = (state.settings.holidays || []).filter((h) => h.id !== id);
   await db.saveSettings({ holidays });
+  await loadState();
+  renderAll();
+}
+
+async function handleDriverSubmit(ev) {
+  ev.preventDefault();
+  const name = $("#driver-name").value.trim();
+  if (!name) return;
+  const exists = state.drivers.some((d) => normalizeName(d.name) === normalizeName(name));
+  if (exists) {
+    alert("Ese conductor ya existe.");
+    return;
+  }
+  await db.put("drivers", {
+    id: db.uid(),
+    name,
+    color: $("#driver-color").value || "#f97316",
+    phone: $("#driver-phone").value.trim(),
+  });
+  ev.target.reset();
+  $("#driver-color").value = "#f97316";
   await loadState();
   renderAll();
 }
@@ -607,6 +771,9 @@ async function duplicatePreviousMonth() {
         endTime: src.endTime,
         venue: src.venue,
         type: src.type,
+        category: src.category || "entrenamiento",
+        opponent: src.opponent || "",
+        homeAway: src.homeAway || "",
         notes: src.notes,
       };
       createdSessions.push(target);
@@ -663,8 +830,10 @@ function fillTripFormFromSelected() {
 }
 
 function bindFormsAndButtons() {
+  $("#form-driver").addEventListener("submit", handleDriverSubmit);
   $("#form-trip").addEventListener("submit", handleTripSubmit);
   $("#form-import-sessions").addEventListener("submit", handleImportSessions);
+  $("#form-event").addEventListener("submit", handleEventSubmit);
   $("#form-vacation").addEventListener("submit", handleVacationSubmit);
   $("#form-holiday").addEventListener("submit", handleHolidaySubmit);
   $("#vacations-list").addEventListener("click", handleVacationDelete);
@@ -694,10 +863,12 @@ async function init() {
   const settings = await db.getSettings();
   if (!settings?.seeded) await seedAugustData();
   await loadState();
+  await ensureRamonDriver();
   bindTabs();
   bindInputs();
   bindFormsAndButtons();
   renderAll();
+  toggleMatchFields();
   await initPWA();
 }
 

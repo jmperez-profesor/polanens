@@ -15,13 +15,14 @@ Aplicación web de página única para gestionar coche compartido de entrenamien
   7. Partidos de fin de semana (hora, rival y casa/fuera).
   8. Gestión de vacaciones/excepciones por conductor.
   9. Estadísticas mensuales por conductor y por niña.
+- Gestión de conductores desde Ajustes (alta de nuevos conductores con color y teléfono opcional).
 - Exportar/importar backup JSON completo.
 - Botón de duplicar estructura del mes anterior.
 - Semana actual destacada en el calendario.
 - Semanas anteriores en tamaño reducido para no saturar la vista.
 - Modo oscuro.
 - Offline-first con Service Worker + manifest (PWA básica).
-- Semilla inicial con datos reales de agosto (botón “Cargar datos de ejemplo”).
+- Semilla inicial con datos reales de agosto (botón “Cargar datos de ejemplo”), incluyendo a Ramón como conductor.
 
 ## Estructura
 
