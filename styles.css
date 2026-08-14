@@ -183,6 +183,23 @@ textarea {
   outline: 2px dashed #f59e0b;
 }
 
+.day.is-current-week {
+  background: color-mix(in oklab, var(--panel) 78%, var(--primary) 22%);
+  border-color: var(--primary);
+}
+
+.day.is-past-week {
+  transform: scale(0.96);
+  transform-origin: top center;
+  opacity: 0.8;
+  min-height: 56px;
+}
+
+.day.is-past-week .session-card,
+.day.is-past-week .trip-card {
+  font-size: 0.66rem;
+}
+
 .session-card {
   margin-top: 0.35rem;
   padding: 0.32rem;

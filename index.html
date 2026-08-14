@@ -71,7 +71,7 @@
             <select id="trip-existing"></select>
           </label>
           <label>
-            <span>Entrenamiento</span>
+            <span>Evento</span>
             <select id="trip-session" required></select>
           </label>
           <label class="new-session-only hidden">
@@ -140,15 +140,75 @@
 
       <section id="import-sessions" class="view">
         <div class="panel-header">
-          <h2>Importar calendario de entrenamientos</h2>
+          <h2>Importar calendario de eventos</h2>
         </div>
-        <p class="hint">Formato CSV por línea: fecha,hora_inicio,hora_fin,pabellón,tipo,notas. La fecha puede ser YYYY-MM-DD o solo día (ej. 12).</p>
+        <p class="hint">Formato CSV por línea: fecha,hora_inicio,hora_fin,pabellón,tipo,notas,categoría,rival,casa_fuera. La fecha puede ser YYYY-MM-DD o solo día (ej. 12).</p>
         <form id="form-import-sessions" class="form-grid">
           <label class="full">
-            <span>Bloque de entrenamientos</span>
+            <span>Bloque de eventos</span>
             <textarea id="sessions-input" rows="8" placeholder="2026-08-12,17:00,19:00,Silvia Martínez,tarde,"></textarea>
           </label>
-          <button class="btn full" type="submit">Importar entrenamientos</button>
+          <button class="btn full" type="submit">Importar eventos</button>
+        </form>
+
+        <div class="panel-header">
+          <h2>Crear / modificar evento (cambio de última hora)</h2>
+        </div>
+        <form id="form-event" class="form-grid">
+          <label class="full">
+            <span>Evento existente</span>
+            <select id="event-existing"></select>
+          </label>
+          <label>
+            <span>Fecha</span>
+            <input id="event-date" type="date" required />
+          </label>
+          <label>
+            <span>Hora inicio</span>
+            <input id="event-start" type="time" required />
+          </label>
+          <label>
+            <span>Hora fin</span>
+            <input id="event-end" type="time" required />
+          </label>
+          <label>
+            <span>Pabellón</span>
+            <select id="event-venue">
+              <option>Silvia Martínez</option>
+              <option>Lara González</option>
+            </select>
+          </label>
+          <label>
+            <span>Tipo horario</span>
+            <select id="event-type">
+              <option value="mañana">mañana</option>
+              <option value="tarde">tarde</option>
+            </select>
+          </label>
+          <label>
+            <span>Evento</span>
+            <select id="event-category">
+              <option value="entrenamiento">Entrenamiento</option>
+              <option value="partido">Partido (fin de semana)</option>
+            </select>
+          </label>
+          <label>
+            <span>Rival (partido)</span>
+            <input id="event-opponent" type="text" placeholder="Ej: CV Elche" />
+          </label>
+          <label>
+            <span>Casa / fuera</span>
+            <select id="event-home-away">
+              <option value="">—</option>
+              <option value="casa">Casa</option>
+              <option value="fuera">Fuera</option>
+            </select>
+          </label>
+          <label class="full">
+            <span>Notas</span>
+            <input id="event-notes" type="text" placeholder="Cambio de hora por última hora" />
+          </label>
+          <button class="btn full" type="submit">Guardar evento</button>
         </form>
       </section>
 

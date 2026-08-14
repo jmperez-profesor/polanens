@@ -10,11 +10,15 @@ Aplicación web de página única para gestionar coche compartido de entrenamien
   2. Resumen por conductor/a con total de viajes.
   3. Vista por niña con su historial del mes.
   4. Alta de viajes (incluye estado `confirmada / si está / no va`).
-  5. Importación masiva de entrenamientos por bloque de texto.
-  6. Gestión de vacaciones/excepciones por conductor.
-  7. Estadísticas mensuales por conductor y por niña.
+  5. Importación masiva de entrenamientos/eventos por bloque de texto.
+  6. Edición de eventos para cambios de última hora.
+  7. Partidos de fin de semana (hora, rival y casa/fuera).
+  8. Gestión de vacaciones/excepciones por conductor.
+  9. Estadísticas mensuales por conductor y por niña.
 - Exportar/importar backup JSON completo.
 - Botón de duplicar estructura del mes anterior.
+- Semana actual destacada en el calendario.
+- Semanas anteriores en tamaño reducido para no saturar la vista.
 - Modo oscuro.
 - Offline-first con Service Worker + manifest (PWA básica).
 - Semilla inicial con datos reales de agosto (botón “Cargar datos de ejemplo”).
@@ -45,13 +49,14 @@ Abrir `http://localhost:8080`.
 3. En “Build and deployment”, selecciona rama (`main`) y carpeta raíz (`/root`).
 4. Guarda y abre la URL publicada.
 
-## Formato de importación de entrenamientos
+## Formato de importación de eventos
 
 Una línea por sesión:
 
 ```text
-2026-08-12,17:00,19:00,Silvia Martínez,tarde,Entreno normal
-24,11:00,13:00,Silvia Martínez,mañana,Presentación
+2026-08-12,17:00,19:00,Silvia Martínez,tarde,Entreno normal,entrenamiento,,
+2026-08-16,10:30,12:00,Silvia Martínez,mañana,Partido amistoso,partido,CV Elche,casa
+24,11:00,13:00,Silvia Martínez,mañana,Presentación,entrenamiento,,
 ```
 
 - Si pones solo el día (`24`), se usa el mes activo seleccionado en la app.
