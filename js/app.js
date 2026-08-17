@@ -726,6 +726,29 @@ async function handleEventSubmit(ev) {
   renderAll();
 }
 
+async function deleteSessionAndTrips(sessionId) {
+  const allTrips = await db.getAll("trips");
+  const linkedTrips = allTrips.filter((t) => t.sessionId === sessionId);
+  for (const trip of linkedTrips) await db.delete("trips", trip.id);
+  await db.delete("sessions", sessionId);
+}
+
+async function handleDeleteEventFromForm() {
+  const eventId = $("#event-existing").value;
+  if (!eventId) {
+    alert("Selecciona primero un evento existente para eliminar.");
+    return;
+  }
+  const session = state.sessions.find((s) => s.id === eventId);
+  const ok = confirm(`¿Eliminar el evento del ${session?.date || ""} y sus viajes asociados?`);
+  if (!ok) return;
+  await deleteSessionAndTrips(eventId);
+  state.editingSessionId = null;
+  $("#form-event").reset();
+  await loadState();
+  renderAll();
+}
+
 function openEventModal(sessionId) {
   const session = state.sessions.find((s) => s.id === sessionId);
   if (!session) return;
@@ -784,6 +807,33 @@ async function handleEventModalSubmit(ev) {
     notes: $("#modal-event-notes").value.trim(),
   });
   closeEventModal();
+  await loadState();
+  renderAll();
+}
+
+async function handleDeleteEventFromModal() {
+  const sessionId = state.editingSessionModalId;
+  if (!sessionId) return;
+  const session = state.sessions.find((s) => s.id === sessionId);
+  const ok = confirm(`¿Eliminar el evento del ${session?.date || ""} y sus viajes asociados?`);
+  if (!ok) return;
+  await deleteSessionAndTrips(sessionId);
+  closeEventModal();
+  await loadState();
+  renderAll();
+}
+
+async function handleDeleteTripFromForm() {
+  const tripId = $("#trip-existing").value;
+  if (!tripId) {
+    alert("Selecciona primero un viaje existente para eliminar.");
+    return;
+  }
+  const ok = confirm("¿Eliminar este viaje?");
+  if (!ok) return;
+  await db.delete("trips", tripId);
+  state.editingTripId = null;
+  $("#form-trip").reset();
   await loadState();
   renderAll();
 }
@@ -852,6 +902,25 @@ async function handleTripModalSubmit(ev) {
     dropoffTime: $("#modal-trip-dropoff").value,
     notes: $("#modal-trip-notes").value.trim(),
   });
+  await loadState();
+  buildModalTripOptions(state.editingSessionModalId);
+  state.editingTripModalId = null;
+  $("#form-trip-modal").reset();
+  renderModalTripDriverOptions();
+  renderModalKidPicker();
+  checkModalTripWarning();
+  renderAll();
+}
+
+async function handleDeleteTripFromModal() {
+  const tripId = $("#modal-trip-existing").value;
+  if (!tripId || !state.editingSessionModalId) {
+    alert("Selecciona primero un viaje existente para eliminar.");
+    return;
+  }
+  const ok = confirm("¿Eliminar este viaje?");
+  if (!ok) return;
+  await db.delete("trips", tripId);
   await loadState();
   buildModalTripOptions(state.editingSessionModalId);
   state.editingTripModalId = null;
@@ -1103,10 +1172,14 @@ function bindFormsAndButtons() {
   $("#form-driver").addEventListener("submit", handleDriverSubmit);
   $("#form-kid").addEventListener("submit", handleKidSubmit);
   $("#form-trip").addEventListener("submit", handleTripSubmit);
+  $("#delete-trip").addEventListener("click", handleDeleteTripFromForm);
   $("#form-trip-modal").addEventListener("submit", handleTripModalSubmit);
+  $("#delete-trip-modal").addEventListener("click", handleDeleteTripFromModal);
   $("#form-import-sessions").addEventListener("submit", handleImportSessions);
   $("#form-event").addEventListener("submit", handleEventSubmit);
+  $("#delete-event").addEventListener("click", handleDeleteEventFromForm);
   $("#form-event-modal").addEventListener("submit", handleEventModalSubmit);
+  $("#delete-event-modal").addEventListener("click", handleDeleteEventFromModal);
   $("#form-vacation").addEventListener("submit", handleVacationSubmit);
   $("#form-holiday").addEventListener("submit", handleHolidaySubmit);
   $("#vacations-list").addEventListener("click", handleVacationDelete);
