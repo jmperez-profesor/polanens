@@ -9,7 +9,7 @@ Aplicación web de página única para gestionar coche compartido de entrenamien
   1. Calendario mensual de entrenamientos y viajes.
   2. Resumen por conductor/a con total de viajes.
   3. Vista por niña con su historial del mes.
-  4. Alta de viajes (incluye estado `confirmada / si está / no va`).
+  4. Alta, edición y eliminación de viajes (incluye estado `confirmada / si está / no va`).
   5. Importación masiva de entrenamientos/eventos por bloque de texto.
   6. Edición y eliminación de eventos para cambios de última hora (formulario y clic directo en calendario con pop-up, incluyendo edición de viajes).
   7. Partidos de fin de semana (hora, rival y casa/fuera).
