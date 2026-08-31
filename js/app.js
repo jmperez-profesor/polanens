@@ -1,6 +1,7 @@
 import { db } from "./db.js";
 import { seedAugustData } from "./seed.js";
 import { supabase } from "./supabase-client.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const APP_VERSION = "v1.1.1";
 
@@ -21,8 +22,8 @@ const REMOTE_TABLES = ["drivers", "kids", "sessions", "trips", "settings"];
 
 function isSupabaseConfigured() {
   try {
-    const url = supabase?.supabaseUrl || "";
-    const key = supabase?.supabaseKey || "";
+    const url = SUPABASE_URL || "";
+    const key = SUPABASE_ANON_KEY || "";
     if (!url || !key) return false;
     if (url.includes("TU-PROYECTO") || key.includes("TU_ANON_KEY")) return false;
     return true;
