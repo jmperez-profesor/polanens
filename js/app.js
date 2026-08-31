@@ -2,7 +2,7 @@ import { db } from "./db.js";
 import { seedAugustData } from "./seed.js";
 import { supabase } from "./supabase-client.js";
 
-const APP_VERSION = "v1.1.0";
+const APP_VERSION = "v1.1.1";
 
 const state = {
   settings: null,
@@ -34,6 +34,91 @@ function isSupabaseConfigured() {
 let remoteReady = false;
 let realtimeChannel = null;
 let realtimeRefreshTimer = null;
+let settingsTable = "settings";
+let normalizedSchema = false;
+
+function defaultSettings() {
+  return {
+    id: "main",
+    activeSeason: "2026-2027",
+    activeMonth: "2026-08",
+    vacations: [],
+    holidays: [],
+    darkMode: false,
+    seeded: false,
+  };
+}
+
+function scheduleRealtimeRefresh() {
+  if (!remoteReady) return;
+  if (realtimeRefreshTimer) clearTimeout(realtimeRefreshTimer);
+  realtimeRefreshTimer = setTimeout(async () => {
+    await loadState();
+    renderAll();
+  }, 120);
+}
+
+function mapSessionFromRemote(row) {
+  if (!normalizedSchema) return row;
+  return {
+    id: row.id,
+    date: row.date,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    venue: row.venue,
+    type: row.session_type,
+    category: row.category || "entrenamiento",
+    opponent: row.opponent || "",
+    homeAway: row.home_away || "",
+    notes: row.notes || "",
+  };
+}
+
+function mapSessionToRemote(session) {
+  if (!normalizedSchema) return session;
+  return {
+    id: session.id,
+    date: session.date,
+    start_time: session.startTime,
+    end_time: session.endTime,
+    venue: session.venue,
+    session_type: session.type,
+    category: session.category || "entrenamiento",
+    opponent: session.opponent || null,
+    home_away: session.homeAway || null,
+    notes: session.notes || null,
+  };
+}
+
+function mapTripFromRemote(row, tripKidsRows) {
+  if (!normalizedSchema) return row;
+  const kids = tripKidsRows
+    .filter((k) => k.trip_id === row.id)
+    .map((k) => ({ kidId: k.kid_id, status: k.status }));
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    driverId: row.driver_id,
+    tripType: row.trip_type,
+    kids,
+    pickupTime: row.pickup_time || "",
+    dropoffTime: row.dropoff_time || "",
+    notes: row.notes || "",
+  };
+}
+
+function mapTripToRemote(trip) {
+  if (!normalizedSchema) return trip;
+  return {
+    id: trip.id,
+    session_id: trip.sessionId,
+    driver_id: trip.driverId,
+    trip_type: trip.tripType,
+    pickup_time: trip.pickupTime || null,
+    dropoff_time: trip.dropoffTime || null,
+    notes: trip.notes || null,
+  };
+}
 
 const dataApi = {
   uid: db.uid,
@@ -41,12 +126,52 @@ const dataApi = {
   async init() {
     await db.init();
     if (!isSupabaseConfigured()) return;
-    const { error } = await supabase.from("settings").select("id").limit(1);
-    remoteReady = !error;
+
+    const settingsProbe = await supabase.from("settings").select("id").limit(1);
+    if (settingsProbe.error) {
+      const appSettingsProbe = await supabase.from("app_settings").select("id").limit(1);
+      if (appSettingsProbe.error) return;
+      settingsTable = "app_settings";
+    }
+
+    const schemaProbe = await supabase.from("sessions").select("start_time").limit(1);
+    normalizedSchema = !schemaProbe.error;
+    remoteReady = true;
   },
 
   async getAll(store) {
     if (!remoteReady || !REMOTE_TABLES.includes(store)) return db.getAll(store);
+
+    if (store === "settings") return [await this.getSettings()];
+
+    if (store === "sessions") {
+      const { data, error } = await supabase.from("sessions").select("*");
+      if (error) return db.getAll(store);
+      const mapped = data.map(mapSessionFromRemote);
+      await db.clear("sessions");
+      if (mapped.length) await db.bulkPut("sessions", mapped);
+      return mapped;
+    }
+
+    if (store === "trips") {
+      if (!normalizedSchema) {
+        const { data, error } = await supabase.from("trips").select("*");
+        if (error) return db.getAll("trips");
+        await db.clear("trips");
+        if (data.length) await db.bulkPut("trips", data);
+        return data;
+      }
+      const [{ data: tripRows, error: tripError }, { data: tripKidsRows, error: kidsError }] = await Promise.all([
+        supabase.from("trips").select("*"),
+        supabase.from("trip_kids").select("*"),
+      ]);
+      if (tripError || kidsError) return db.getAll("trips");
+      const mapped = tripRows.map((row) => mapTripFromRemote(row, tripKidsRows));
+      await db.clear("trips");
+      if (mapped.length) await db.bulkPut("trips", mapped);
+      return mapped;
+    }
+
     const { data, error } = await supabase.from(store).select("*");
     if (error) return db.getAll(store);
     await db.clear(store);
@@ -56,43 +181,119 @@ const dataApi = {
 
   async getSettings() {
     if (!remoteReady) return db.getSettings();
-    const { data, error } = await supabase.from("settings").select("*").eq("id", "main").maybeSingle();
-    if (error) return db.getSettings();
-    if (!data) {
-      const local = (await db.getSettings()) || {
-        id: "main",
-        activeSeason: "2026-2027",
-        activeMonth: "2026-08",
-        vacations: [],
-        holidays: [],
-        darkMode: false,
-        seeded: false,
-      };
 
-      function scheduleRealtimeRefresh() {
-        if (!remoteReady) return;
-        if (realtimeRefreshTimer) clearTimeout(realtimeRefreshTimer);
-        realtimeRefreshTimer = setTimeout(async () => {
-          await loadState();
-          renderAll();
-        }, 120);
+    const { data, error } = await supabase.from(settingsTable).select("*").eq("id", "main").maybeSingle();
+    if (error) return db.getSettings();
+    const local = (await db.getSettings()) || defaultSettings();
+
+    if (!data) {
+      if (settingsTable === "app_settings") {
+        const seedRow = {
+          id: "main",
+          active_season: local.activeSeason,
+          active_month: local.activeMonth,
+          dark_mode: local.darkMode,
+        };
+        const { data: created } = await supabase.from(settingsTable).upsert(seedRow).select().single();
+        const next = created
+          ? {
+              ...local,
+              activeSeason: created.active_season ?? local.activeSeason,
+              activeMonth: created.active_month ?? local.activeMonth,
+              darkMode: created.dark_mode ?? local.darkMode,
+            }
+          : local;
+        await db.put("settings", next);
+        return next;
       }
-      const { data: created } = await supabase.from("settings").upsert(local).select().single();
+      const { data: created } = await supabase.from(settingsTable).upsert(local).select().single();
       await db.put("settings", created || local);
       return created || local;
     }
-    await db.put("settings", data);
-    return data;
+
+    if (!normalizedSchema || settingsTable === "settings") {
+      await db.put("settings", data);
+      return data;
+    }
+
+    const [{ data: vacations }, { data: holidays }] = await Promise.all([
+      supabase.from("driver_vacations").select("*"),
+      supabase.from("holidays").select("*"),
+    ]);
+
+    const mapped = {
+      ...local,
+      id: "main",
+      activeSeason: data.active_season ?? local.activeSeason,
+      activeMonth: data.active_month ?? local.activeMonth,
+      darkMode: data.dark_mode ?? local.darkMode,
+      vacations: (vacations || []).map((v) => ({
+        id: v.id,
+        driverId: v.driver_id,
+        startDate: v.start_date,
+        endDate: v.end_date,
+        note: v.note || "",
+      })),
+      holidays: (holidays || []).map((h) => ({
+        id: h.id,
+        date: h.date,
+        note: h.note || "",
+      })),
+      seeded: true,
+    };
+    await db.put("settings", mapped);
+    return mapped;
   },
 
   async saveSettings(patch) {
-    const current = (await this.getSettings()) || { id: "main" };
+    const current = (await this.getSettings()) || defaultSettings();
     const next = { ...current, ...patch, id: "main" };
+
     if (remoteReady) {
-      const { data, error } = await supabase.from("settings").upsert(next).select().single();
-      if (!error && data) {
-        await db.put("settings", data);
-        return data;
+      if (normalizedSchema && settingsTable === "app_settings") {
+        const baseRow = {
+          id: "main",
+          active_season: next.activeSeason,
+          active_month: next.activeMonth,
+          dark_mode: !!next.darkMode,
+        };
+        await supabase.from(settingsTable).upsert(baseRow);
+
+        if (patch.vacations) {
+          await supabase.from("driver_vacations").delete().not("id", "is", null);
+          if (next.vacations.length) {
+            await supabase.from("driver_vacations").insert(
+              next.vacations.map((v) => ({
+                id: v.id || this.uid(),
+                driver_id: v.driverId,
+                start_date: v.startDate,
+                end_date: v.endDate,
+                note: v.note || null,
+              }))
+            );
+          }
+        }
+
+        if (patch.holidays) {
+          await supabase.from("holidays").delete().not("id", "is", null);
+          if (next.holidays.length) {
+            await supabase.from("holidays").insert(
+              next.holidays.map((h) => ({
+                id: h.id || this.uid(),
+                date: h.date,
+                note: h.note || null,
+              }))
+            );
+          }
+        }
+        await db.put("settings", next);
+        return next;
+      }
+
+      const { data: saved, error } = await supabase.from(settingsTable).upsert(next).select().single();
+      if (!error && saved) {
+        await db.put("settings", saved);
+        return saved;
       }
     }
     return db.saveSettings(patch);
@@ -101,10 +302,43 @@ const dataApi = {
   async put(store, value) {
     const next = value?.id ? value : { ...value, id: this.uid() };
     if (remoteReady && REMOTE_TABLES.includes(store)) {
-      const { data, error } = await supabase.from(store).upsert(next).select().single();
-      if (!error && data) {
-        await db.put(store, data);
-        return data;
+      if (store === "settings") return this.saveSettings(next);
+
+      if (store === "sessions") {
+        const remotePayload = mapSessionToRemote(next);
+        const { error } = await supabase.from("sessions").upsert(remotePayload);
+        if (!error) {
+          await db.put("sessions", next);
+          return next;
+        }
+      } else if (store === "trips") {
+        if (!normalizedSchema) {
+          const { data, error } = await supabase.from("trips").upsert(next).select().single();
+          if (!error && data) {
+            await db.put("trips", data);
+            return data;
+          }
+        } else {
+          const remoteTrip = mapTripToRemote(next);
+          const { error } = await supabase.from("trips").upsert(remoteTrip);
+          if (!error) {
+            await supabase.from("trip_kids").delete().eq("trip_id", next.id);
+            const kidsRows = (next.kids || []).map((k) => ({
+              trip_id: next.id,
+              kid_id: k.kidId,
+              status: k.status,
+            }));
+            if (kidsRows.length) await supabase.from("trip_kids").insert(kidsRows);
+            await db.put("trips", next);
+            return next;
+          }
+        }
+      } else {
+        const { data, error } = await supabase.from(store).upsert(next).select().single();
+        if (!error && data) {
+          await db.put(store, data);
+          return data;
+        }
       }
     }
     return db.put(store, next);
@@ -113,7 +347,11 @@ const dataApi = {
   async bulkPut(store, values) {
     const nextValues = values.map((v) => (v?.id ? v : { ...v, id: this.uid() }));
     if (remoteReady && REMOTE_TABLES.includes(store)) {
-      const { error } = await supabase.from(store).upsert(nextValues);
+      if (store === "trips" || store === "sessions") {
+        for (const row of nextValues) await this.put(store, row);
+        return;
+      }
+      const { error } = await supabase.from(store === "settings" ? settingsTable : store).upsert(nextValues);
       if (!error) {
         await db.clear(store);
         if (nextValues.length) await db.bulkPut(store, nextValues);
@@ -125,7 +363,9 @@ const dataApi = {
 
   async delete(store, id) {
     if (remoteReady && REMOTE_TABLES.includes(store)) {
-      const { error } = await supabase.from(store).delete().eq("id", id);
+      if (store === "settings") return;
+      const table = store;
+      const { error } = await supabase.from(table).delete().eq("id", id);
       if (!error) {
         await db.delete(store, id);
         return;
@@ -136,7 +376,9 @@ const dataApi = {
 
   async clear(store) {
     if (remoteReady && REMOTE_TABLES.includes(store)) {
-      const { error } = await supabase.from(store).delete().not("id", "is", null);
+      const table = store === "settings" ? settingsTable : store;
+      if (store === "settings") return;
+      const { error } = await supabase.from(table).delete().not("id", "is", null);
       if (!error) {
         await db.clear(store);
         return;
@@ -154,7 +396,7 @@ const dataApi = {
   async importAll(payload) {
     for (const store of REMOTE_TABLES) {
       if (!Array.isArray(payload[store])) continue;
-      await this.clear(store);
+      if (store !== "settings") await this.clear(store);
       await this.bulkPut(store, payload[store]);
     }
   },
@@ -1352,14 +1594,22 @@ async function initPWA() {
 function initRealtime() {
   if (!remoteReady) return;
   if (realtimeChannel) supabase.removeChannel(realtimeChannel);
-  realtimeChannel = supabase
+  let channel = supabase
     .channel("carpool-sync")
     .on("postgres_changes", { event: "*", schema: "public", table: "drivers" }, scheduleRealtimeRefresh)
     .on("postgres_changes", { event: "*", schema: "public", table: "kids" }, scheduleRealtimeRefresh)
     .on("postgres_changes", { event: "*", schema: "public", table: "sessions" }, scheduleRealtimeRefresh)
     .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, scheduleRealtimeRefresh)
-    .on("postgres_changes", { event: "*", schema: "public", table: "settings" }, scheduleRealtimeRefresh)
-    .subscribe();
+    .on("postgres_changes", { event: "*", schema: "public", table: settingsTable }, scheduleRealtimeRefresh);
+
+  if (normalizedSchema) {
+    channel = channel
+      .on("postgres_changes", { event: "*", schema: "public", table: "trip_kids" }, scheduleRealtimeRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "driver_vacations" }, scheduleRealtimeRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "holidays" }, scheduleRealtimeRefresh);
+  }
+
+  realtimeChannel = channel.subscribe();
 }
 
 function bindRealtimeLifecycle() {
