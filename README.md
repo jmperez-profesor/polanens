@@ -32,8 +32,11 @@ Aplicación web de página única para gestionar coche compartido de entrenamien
 - `styles.css`: estilos responsive, mobile-first.
 - `js/db.js`: capa IndexedDB y operaciones CRUD.
 - `js/seed.js`: datos de ejemplo y carga inicial.
-- `js/app.js`: lógica de vistas, formularios y estadísticas.
+- `js/config.js`: configuración de Supabase.
+- `js/supabase-client.js`: cliente Supabase.
+- `js/app.js`: lógica de vistas, formularios y estadísticas (Supabase como fuente principal con fallback local).
 - `manifest.webmanifest` y `sw.js`: soporte PWA/offline.
+- `supabase-setup.sql`: script SQL para crear tablas/políticas/realtime en Supabase.
 
 ## Uso local
 
@@ -51,6 +54,17 @@ Abrir `http://localhost:8080`.
 2. En GitHub: **Settings → Pages**.
 3. En “Build and deployment”, selecciona rama (`main`) y carpeta raíz (`/root`).
 4. Guarda y abre la URL publicada.
+
+## Configurar Supabase (colaboración en tiempo real)
+
+1. En Supabase crea un proyecto.
+2. En **SQL Editor**, ejecuta `supabase-setup.sql`.
+3. En `js/config.js`, reemplaza:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+4. Publica la web y recarga en todos los dispositivos.
+
+Si `config.js` mantiene placeholders, la app seguirá funcionando en modo local (IndexedDB) sin sincronización entre usuarios.
 
 ## Formato de importación de eventos
 
