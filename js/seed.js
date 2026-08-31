@@ -23,14 +23,14 @@ function girlsWithStatus(names, conditionalNames = []) {
   }));
 }
 
-export async function seedAugustData({ force = false } = {}) {
-  const settings = await db.getSettings();
+export async function seedAugustData({ force = false, dataLayer = db } = {}) {
+  const settings = await dataLayer.getSettings();
   if (settings?.seeded && !force) return false;
 
-  await Promise.all(["drivers", "kids", "sessions", "trips"].map((store) => db.clear(store)));
+  await Promise.all(["drivers", "kids", "sessions", "trips"].map((store) => dataLayer.clear(store)));
 
   const drivers = ["Vanesa", "Loli", "Sonia", "Carpena", "Ramón"].map((name) => ({
-    id: db.uid(),
+    id: dataLayer.uid ? dataLayer.uid() : db.uid(),
     name,
     phone: "",
     color: driverColors[name],
@@ -38,14 +38,14 @@ export async function seedAugustData({ force = false } = {}) {
   const driverByName = Object.fromEntries(drivers.map((d) => [d.name, d]));
 
   const kids = ["Aina", "Nerea", "Blanca", "Martina", "Valentina"].map((name) => ({
-    id: db.uid(),
+    id: dataLayer.uid ? dataLayer.uid() : db.uid(),
     name,
     active: true,
   }));
   const kidByName = Object.fromEntries(kids.map((k) => [k.name, k]));
 
-  await db.bulkPut("drivers", drivers);
-  await db.bulkPut("kids", kids);
+  await dataLayer.bulkPut("drivers", drivers);
+  await dataLayer.bulkPut("kids", kids);
 
   const year = 2026;
   const month = 8;
@@ -71,7 +71,7 @@ export async function seedAugustData({ force = false } = {}) {
     sessions.push(createSession(toDate(year, month, day), "17:00", "19:00", venue, "tarde"));
   });
 
-  await db.bulkPut("sessions", sessions);
+  await dataLayer.bulkPut("sessions", sessions);
   const byKey = Object.fromEntries(sessions.map((s) => [`${s.date}|${s.type}`, s]));
 
   const allGirls = ["Aina", "Nerea", "Blanca", "Martina"];
@@ -205,7 +205,7 @@ export async function seedAugustData({ force = false } = {}) {
       notes: "",
     },
   ].map((trip) => ({
-    id: db.uid(),
+    id: dataLayer.uid ? dataLayer.uid() : db.uid(),
     sessionId: trip.session.id,
     driverId: driverByName[trip.driver].id,
     tripType: trip.tripType,
@@ -215,15 +215,15 @@ export async function seedAugustData({ force = false } = {}) {
     notes: trip.notes,
   }));
 
-  await db.bulkPut("trips", trips);
+  await dataLayer.bulkPut("trips", trips);
 
-  await db.saveSettings({
+  await dataLayer.saveSettings({
     activeMonth: "2026-08",
     activeSeason: "2026-2027",
     seeded: true,
     vacations: [
       {
-        id: db.uid(),
+        id: dataLayer.uid ? dataLayer.uid() : db.uid(),
         driverId: driverByName["Carpena"].id,
         startDate: "2026-08-18",
         endDate: "2026-08-30",

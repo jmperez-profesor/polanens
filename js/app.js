@@ -1,7 +1,8 @@
 import { db } from "./db.js";
 import { seedAugustData } from "./seed.js";
+import { supabase } from "./supabase-client.js";
 
-const APP_VERSION = "v1.0.0";
+const APP_VERSION = "v1.1.0";
 
 const state = {
   settings: null,
@@ -14,6 +15,149 @@ const state = {
   editingSessionId: null,
   editingSessionModalId: null,
   editingTripModalId: null,
+};
+
+const REMOTE_TABLES = ["drivers", "kids", "sessions", "trips", "settings"];
+
+function isSupabaseConfigured() {
+  try {
+    const url = supabase?.supabaseUrl || "";
+    const key = supabase?.supabaseKey || "";
+    if (!url || !key) return false;
+    if (url.includes("TU-PROYECTO") || key.includes("TU_ANON_KEY")) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+let remoteReady = false;
+let realtimeChannel = null;
+let realtimeRefreshTimer = null;
+
+const dataApi = {
+  uid: db.uid,
+
+  async init() {
+    await db.init();
+    if (!isSupabaseConfigured()) return;
+    const { error } = await supabase.from("settings").select("id").limit(1);
+    remoteReady = !error;
+  },
+
+  async getAll(store) {
+    if (!remoteReady || !REMOTE_TABLES.includes(store)) return db.getAll(store);
+    const { data, error } = await supabase.from(store).select("*");
+    if (error) return db.getAll(store);
+    await db.clear(store);
+    if (data.length) await db.bulkPut(store, data);
+    return data;
+  },
+
+  async getSettings() {
+    if (!remoteReady) return db.getSettings();
+    const { data, error } = await supabase.from("settings").select("*").eq("id", "main").maybeSingle();
+    if (error) return db.getSettings();
+    if (!data) {
+      const local = (await db.getSettings()) || {
+        id: "main",
+        activeSeason: "2026-2027",
+        activeMonth: "2026-08",
+        vacations: [],
+        holidays: [],
+        darkMode: false,
+        seeded: false,
+      };
+
+      function scheduleRealtimeRefresh() {
+        if (!remoteReady) return;
+        if (realtimeRefreshTimer) clearTimeout(realtimeRefreshTimer);
+        realtimeRefreshTimer = setTimeout(async () => {
+          await loadState();
+          renderAll();
+        }, 120);
+      }
+      const { data: created } = await supabase.from("settings").upsert(local).select().single();
+      await db.put("settings", created || local);
+      return created || local;
+    }
+    await db.put("settings", data);
+    return data;
+  },
+
+  async saveSettings(patch) {
+    const current = (await this.getSettings()) || { id: "main" };
+    const next = { ...current, ...patch, id: "main" };
+    if (remoteReady) {
+      const { data, error } = await supabase.from("settings").upsert(next).select().single();
+      if (!error && data) {
+        await db.put("settings", data);
+        return data;
+      }
+    }
+    return db.saveSettings(patch);
+  },
+
+  async put(store, value) {
+    const next = value?.id ? value : { ...value, id: this.uid() };
+    if (remoteReady && REMOTE_TABLES.includes(store)) {
+      const { data, error } = await supabase.from(store).upsert(next).select().single();
+      if (!error && data) {
+        await db.put(store, data);
+        return data;
+      }
+    }
+    return db.put(store, next);
+  },
+
+  async bulkPut(store, values) {
+    const nextValues = values.map((v) => (v?.id ? v : { ...v, id: this.uid() }));
+    if (remoteReady && REMOTE_TABLES.includes(store)) {
+      const { error } = await supabase.from(store).upsert(nextValues);
+      if (!error) {
+        await db.clear(store);
+        if (nextValues.length) await db.bulkPut(store, nextValues);
+        return;
+      }
+    }
+    return db.bulkPut(store, nextValues);
+  },
+
+  async delete(store, id) {
+    if (remoteReady && REMOTE_TABLES.includes(store)) {
+      const { error } = await supabase.from(store).delete().eq("id", id);
+      if (!error) {
+        await db.delete(store, id);
+        return;
+      }
+    }
+    return db.delete(store, id);
+  },
+
+  async clear(store) {
+    if (remoteReady && REMOTE_TABLES.includes(store)) {
+      const { error } = await supabase.from(store).delete().not("id", "is", null);
+      if (!error) {
+        await db.clear(store);
+        return;
+      }
+    }
+    return db.clear(store);
+  },
+
+  async exportAll() {
+    const payload = {};
+    for (const store of REMOTE_TABLES) payload[store] = await this.getAll(store);
+    return payload;
+  },
+
+  async importAll(payload) {
+    for (const store of REMOTE_TABLES) {
+      if (!Array.isArray(payload[store])) continue;
+      await this.clear(store);
+      await this.bulkPut(store, payload[store]);
+    }
+  },
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -105,34 +249,34 @@ function inVacation(driverId, date) {
 }
 
 async function loadState() {
-  state.settings = await db.getSettings();
-  state.drivers = await db.getAll("drivers");
-  state.kids = await db.getAll("kids");
-  state.sessions = await db.getAll("sessions");
-  state.trips = await db.getAll("trips");
+  state.settings = await dataApi.getSettings();
+  state.drivers = await dataApi.getAll("drivers");
+  state.kids = await dataApi.getAll("kids");
+  state.sessions = await dataApi.getAll("sessions");
+  state.trips = await dataApi.getAll("trips");
 }
 
 async function ensureRamonDriver() {
   const exists = state.drivers.some((d) => normalizeName(d.name) === normalizeName("ramón"));
   if (exists) return;
-  await db.put("drivers", {
-    id: db.uid(),
+  await dataApi.put("drivers", {
+    id: dataApi.uid(),
     name: "Ramón",
     color: "#f97316",
     phone: "",
   });
-  state.drivers = await db.getAll("drivers");
+  state.drivers = await dataApi.getAll("drivers");
 }
 
 async function ensureValentinaKid() {
   const exists = state.kids.some((k) => normalizeName(k.name) === normalizeName("valentina"));
   if (exists) return;
-  await db.put("kids", {
-    id: db.uid(),
+  await dataApi.put("kids", {
+    id: dataApi.uid(),
     name: "Valentina",
     active: true,
   });
-  state.kids = await db.getAll("kids");
+  state.kids = await dataApi.getAll("kids");
 }
 
 function getMonthData(month) {
@@ -507,13 +651,13 @@ function bindTabs() {
 
 function bindInputs() {
   $("#active-month").addEventListener("change", async (e) => {
-    await db.saveSettings({ activeMonth: e.target.value });
+    await dataApi.saveSettings({ activeMonth: e.target.value });
     await loadState();
     renderAll();
   });
 
   $("#toggle-dark").addEventListener("click", async () => {
-    await db.saveSettings({ darkMode: !state.settings.darkMode });
+    await dataApi.saveSettings({ darkMode: !state.settings.darkMode });
     await loadState();
     renderAll();
   });
@@ -563,7 +707,7 @@ async function handleTripSubmit(ev) {
 
   if (sessionId === "__new__") {
     const s = {
-      id: db.uid(),
+      id: dataApi.uid(),
       date: $("#new-session-date").value,
       startTime: $("#new-session-start").value,
       endTime: $("#new-session-end").value,
@@ -575,14 +719,14 @@ async function handleTripSubmit(ev) {
       homeAway: "",
     };
     if (!s.date || !s.startTime || !s.endTime) return;
-    await db.put("sessions", s);
+    await dataApi.put("sessions", s);
     sessionId = s.id;
   }
 
   const driverId = $("#trip-driver").value;
   if (!driverId) return;
 
-  const session = (await db.getAll("sessions")).find((s) => s.id === sessionId);
+  const session = (await dataApi.getAll("sessions")).find((s) => s.id === sessionId);
   const v = inVacation(driverId, session.date);
   if (v) {
     alert("No se puede asignar: conductor en vacaciones.");
@@ -598,8 +742,8 @@ async function handleTripSubmit(ev) {
       return { kidId: k.id, status };
     });
 
-  await db.put("trips", {
-    id: state.editingTripId || db.uid(),
+  await dataApi.put("trips", {
+    id: state.editingTripId || dataApi.uid(),
     sessionId,
     driverId,
     tripType: $("#trip-type").value,
@@ -626,7 +770,7 @@ function parseSessionLine(line, activeMonth) {
     dateRaw = `${activeMonth}-${String(day).padStart(2, "0")}`;
   }
   return {
-    id: db.uid(),
+    id: dataApi.uid(),
     date: dateRaw,
     startTime,
     endTime,
@@ -648,7 +792,7 @@ async function handleImportSessions(ev) {
     .map((line) => parseSessionLine(line, state.settings.activeMonth))
     .filter(Boolean);
   if (!sessions.length) return;
-  await db.bulkPut("sessions", sessions);
+  await dataApi.bulkPut("sessions", sessions);
   ev.target.reset();
   await loadState();
   renderAll();
@@ -708,8 +852,8 @@ async function handleEventSubmit(ev) {
   const category = $("#event-category").value;
   const date = $("#event-date").value;
   if (!date) return;
-  await db.put("sessions", {
-    id: state.editingSessionId || db.uid(),
+  await dataApi.put("sessions", {
+    id: state.editingSessionId || dataApi.uid(),
     date,
     startTime: $("#event-start").value,
     endTime: $("#event-end").value,
@@ -727,10 +871,10 @@ async function handleEventSubmit(ev) {
 }
 
 async function deleteSessionAndTrips(sessionId) {
-  const allTrips = await db.getAll("trips");
+  const allTrips = await dataApi.getAll("trips");
   const linkedTrips = allTrips.filter((t) => t.sessionId === sessionId);
-  for (const trip of linkedTrips) await db.delete("trips", trip.id);
-  await db.delete("sessions", sessionId);
+  for (const trip of linkedTrips) await dataApi.delete("trips", trip.id);
+  await dataApi.delete("sessions", sessionId);
 }
 
 async function handleDeleteEventFromForm() {
@@ -794,7 +938,7 @@ async function handleEventModalSubmit(ev) {
   ev.preventDefault();
   if (!state.editingSessionModalId) return;
   const category = $("#modal-event-category").value;
-  await db.put("sessions", {
+  await dataApi.put("sessions", {
     id: state.editingSessionModalId,
     date: $("#modal-event-date").value,
     startTime: $("#modal-event-start").value,
@@ -831,7 +975,7 @@ async function handleDeleteTripFromForm() {
   }
   const ok = confirm("¿Eliminar este viaje?");
   if (!ok) return;
-  await db.delete("trips", tripId);
+  await dataApi.delete("trips", tripId);
   state.editingTripId = null;
   $("#form-trip").reset();
   await loadState();
@@ -892,8 +1036,8 @@ async function handleTripModalSubmit(ev) {
       if (!checked) return { kidId: k.id, status: "no_va" };
       return { kidId: k.id, status };
     });
-  await db.put("trips", {
-    id: state.editingTripModalId || db.uid(),
+  await dataApi.put("trips", {
+    id: state.editingTripModalId || dataApi.uid(),
     sessionId: state.editingSessionModalId,
     driverId,
     tripType: $("#modal-trip-type").value,
@@ -920,7 +1064,7 @@ async function handleDeleteTripFromModal() {
   }
   const ok = confirm("¿Eliminar este viaje?");
   if (!ok) return;
-  await db.delete("trips", tripId);
+  await dataApi.delete("trips", tripId);
   await loadState();
   buildModalTripOptions(state.editingSessionModalId);
   state.editingTripModalId = null;
@@ -940,14 +1084,14 @@ async function handleVacationSubmit(ev) {
   const vacations = [
     ...(state.settings.vacations || []),
     {
-      id: db.uid(),
+      id: dataApi.uid(),
       driverId,
       startDate,
       endDate,
       note: $("#vac-note").value.trim(),
     },
   ];
-  await db.saveSettings({ vacations });
+  await dataApi.saveSettings({ vacations });
   ev.target.reset();
   await loadState();
   renderAll();
@@ -957,7 +1101,7 @@ async function handleVacationDelete(ev) {
   const id = ev.target.dataset.delVac;
   if (!id) return;
   const vacations = (state.settings.vacations || []).filter((v) => v.id !== id);
-  await db.saveSettings({ vacations });
+  await dataApi.saveSettings({ vacations });
   await loadState();
   renderAll();
 }
@@ -968,9 +1112,9 @@ async function handleHolidaySubmit(ev) {
   if (!date) return;
   const holidays = [
     ...(state.settings.holidays || []),
-    { id: db.uid(), date, note: $("#holiday-note").value.trim() },
+    { id: dataApi.uid(), date, note: $("#holiday-note").value.trim() },
   ];
-  await db.saveSettings({ holidays });
+  await dataApi.saveSettings({ holidays });
   ev.target.reset();
   await loadState();
   renderAll();
@@ -980,7 +1124,7 @@ async function handleHolidayDelete(ev) {
   const id = ev.target.dataset.delHoliday;
   if (!id) return;
   const holidays = (state.settings.holidays || []).filter((h) => h.id !== id);
-  await db.saveSettings({ holidays });
+  await dataApi.saveSettings({ holidays });
   await loadState();
   renderAll();
 }
@@ -994,8 +1138,8 @@ async function handleDriverSubmit(ev) {
     alert("Ese conductor ya existe.");
     return;
   }
-  await db.put("drivers", {
-    id: db.uid(),
+  await dataApi.put("drivers", {
+    id: dataApi.uid(),
     name,
     color: $("#driver-color").value || "#f97316",
     phone: $("#driver-phone").value.trim(),
@@ -1015,8 +1159,8 @@ async function handleKidSubmit(ev) {
     alert("Esa niña ya existe.");
     return;
   }
-  await db.put("kids", {
-    id: db.uid(),
+  await dataApi.put("kids", {
+    id: dataApi.uid(),
     name,
     active: true,
   });
@@ -1034,15 +1178,15 @@ async function handleKidDelete(ev) {
   const affectedTrips = state.trips.filter((trip) => trip.kids.some((k) => k.kidId === id));
   for (const trip of affectedTrips) {
     const nextKids = trip.kids.filter((k) => k.kidId !== id);
-    await db.put("trips", { ...trip, kids: nextKids });
+    await dataApi.put("trips", { ...trip, kids: nextKids });
   }
-  await db.delete("kids", id);
+  await dataApi.delete("kids", id);
   await loadState();
   renderAll();
 }
 
 async function exportJson() {
-  const payload = await db.exportAll();
+  const payload = await dataApi.exportAll();
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -1055,7 +1199,7 @@ async function importJson(file) {
   if (!file) return;
   const text = await file.text();
   const payload = JSON.parse(text);
-  await db.importAll(payload);
+  await dataApi.importAll(payload);
   await loadState();
   renderAll();
 }
@@ -1104,7 +1248,7 @@ async function duplicatePreviousMonth() {
     let target = existing.find((s) => `${s.date}|${s.startTime}|${s.endTime}|${s.type}` === key);
     if (!target && !existingKey.has(key)) {
       target = {
-        id: db.uid(),
+        id: dataApi.uid(),
         date: targetDate,
         startTime: src.startTime,
         endTime: src.endTime,
@@ -1121,16 +1265,16 @@ async function duplicatePreviousMonth() {
     if (target) sourceToTarget.set(src.id, target.id);
   }
 
-  if (createdSessions.length) await db.bulkPut("sessions", createdSessions);
+  if (createdSessions.length) await dataApi.bulkPut("sessions", createdSessions);
   await loadState();
 
   const sourceTrips = state.trips.filter((t) => sourceToTarget.has(t.sessionId));
   const copiedTrips = sourceTrips.map((t) => ({
     ...t,
-    id: db.uid(),
+    id: dataApi.uid(),
     sessionId: sourceToTarget.get(t.sessionId),
   }));
-  if (copiedTrips.length) await db.bulkPut("trips", copiedTrips);
+  if (copiedTrips.length) await dataApi.bulkPut("trips", copiedTrips);
   await loadState();
   renderAll();
 }
@@ -1189,7 +1333,7 @@ function bindFormsAndButtons() {
   $("#import-json").addEventListener("change", (e) => importJson(e.target.files[0]));
   $("#duplicate-month").addEventListener("click", duplicatePreviousMonth);
   $("#load-seed").addEventListener("click", async () => {
-    await seedAugustData({ force: true });
+    await seedAugustData({ force: true, dataLayer: dataApi });
     await loadState();
     renderAll();
   });
@@ -1205,16 +1349,39 @@ async function initPWA() {
   }
 }
 
+function initRealtime() {
+  if (!remoteReady) return;
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+  realtimeChannel = supabase
+    .channel("carpool-sync")
+    .on("postgres_changes", { event: "*", schema: "public", table: "drivers" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "kids" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "sessions" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "settings" }, scheduleRealtimeRefresh)
+    .subscribe();
+}
+
+function bindRealtimeLifecycle() {
+  document.addEventListener("visibilitychange", async () => {
+    if (document.hidden || !remoteReady) return;
+    await loadState();
+    renderAll();
+  });
+}
+
 async function init() {
-  await db.init();
-  const settings = await db.getSettings();
-  if (!settings?.seeded) await seedAugustData();
+  await dataApi.init();
+  const settings = await dataApi.getSettings();
+  if (!settings?.seeded) await seedAugustData({ dataLayer: dataApi });
   await loadState();
   await ensureRamonDriver();
   await ensureValentinaKid();
   bindTabs();
   bindInputs();
   bindFormsAndButtons();
+  bindRealtimeLifecycle();
+  initRealtime();
   renderAll();
   toggleMatchFields();
   toggleModalMatchFields();
