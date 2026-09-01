@@ -1,0 +1,1108 @@
+{
+  "drivers": [
+    {
+      "id": "218448fb-bcb8-44f5-8f04-6923652662bf",
+      "name": "Loli",
+      "phone": "",
+      "color": "#2563eb"
+    },
+    {
+      "id": "49921a48-e9f1-45d5-a886-87250fd69524",
+      "name": "Emilio",
+      "color": "#fff1a8",
+      "phone": ""
+    },
+    {
+      "id": "d89db7de-d5d5-4d77-97cc-3f41827d0fa8",
+      "name": "Ramón",
+      "phone": "",
+      "color": "#f97316"
+    },
+    {
+      "id": "e1856451-03b6-43fd-b4e5-eb5d211d98a2",
+      "name": "Vanesa",
+      "phone": "",
+      "color": "#e11d48"
+    },
+    {
+      "id": "fc9bd284-c5b8-4512-8a95-5c834ffddd3e",
+      "name": "Sonia",
+      "phone": "",
+      "color": "#16a34a"
+    },
+    {
+      "id": "fd04464f-8de5-4708-a57e-0f49c78cebf2",
+      "name": "Carpena",
+      "phone": "",
+      "color": "#9333ea"
+    }
+  ],
+  "kids": [
+    {
+      "id": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+      "name": "Aina",
+      "active": true
+    },
+    {
+      "id": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+      "name": "Martina",
+      "active": true
+    },
+    {
+      "id": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+      "name": "Nerea",
+      "active": true
+    },
+    {
+      "id": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+      "name": "Blanca",
+      "active": true
+    },
+    {
+      "id": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+      "name": "Valentina",
+      "active": true
+    }
+  ],
+  "sessions": [
+    {
+      "id": "05d9abdd-7271-4548-9ceb-54dc2712257a",
+      "date": "2026-08-10",
+      "startTime": "11:00",
+      "endTime": "13:30",
+      "venue": "Silvia Martínez",
+      "type": "mañana",
+      "notes": "Presentación + mediciones"
+    },
+    {
+      "id": "0968cde7-0d6a-4424-8ee6-7b5e4481f5ad",
+      "date": "2026-09-11",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "0a2aa52b-d99c-45ac-97ba-81360ab4bb18",
+      "date": "2026-09-02",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "0b35a5e3-50b5-43dc-9bb2-b8f3ae7962b0",
+      "date": "2026-08-17",
+      "startTime": "11:15",
+      "endTime": "13:30",
+      "venue": "Silvia Martínez",
+      "type": "mañana",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "0f336083-97ce-464a-a978-b8267b1ec876",
+      "date": "2026-09-25",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "16dda7f8-682a-4956-a043-90791e2713e1",
+      "date": "2026-09-21",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": "",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": ""
+    },
+    {
+      "id": "185b7feb-4a81-45c0-a21d-49661b15c0a9",
+      "date": "2026-10-03",
+      "startTime": "10:00",
+      "endTime": "12:00",
+      "venue": "Otro",
+      "type": "mañana",
+      "category": "partido",
+      "opponent": "Grau Élite Cementos",
+      "homeAway": "fuera",
+      "notes": ""
+    },
+    {
+      "id": "1e67f5a3-4f95-4765-901e-4da391ac954a",
+      "date": "2026-10-31",
+      "startTime": "00:00",
+      "endTime": "00:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "partido",
+      "opponent": "CD Salesianos Elche",
+      "homeAway": "casa",
+      "notes": ""
+    },
+    {
+      "id": "22b3e128-594c-4468-a5d7-b2fc2fe0632f",
+      "date": "2026-10-17",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "partido",
+      "opponent": "CV Paterna-Liceo Tigresas",
+      "homeAway": "casa",
+      "notes": ""
+    },
+    {
+      "id": "22c5ed59-c54f-40e4-9706-0129be6efb5b",
+      "date": "2026-09-14",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "27c0f4b8-aaeb-4339-99eb-9729bd1c8ce0",
+      "date": "2026-09-04",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "2ffba38b-4390-426d-aed7-292c55735907",
+      "date": "2026-08-10",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": ""
+    },
+    {
+      "id": "344faf98-3934-4bb0-bd4d-ca46e39012ed",
+      "date": "2026-09-16",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "3805117f-7fa7-46df-a7f7-38f1d4b9f006",
+      "date": "2026-09-19",
+      "startTime": "12:00",
+      "endTime": "14:00",
+      "venue": "Otro",
+      "type": "tarde",
+      "category": "partido",
+      "opponent": "CV Gandia",
+      "homeAway": "fuera",
+      "notes": ""
+    },
+    {
+      "id": "40dcf025-32e3-4a2c-9b0b-971a2b196d41",
+      "date": "2026-08-12",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": ""
+    },
+    {
+      "id": "4a3732d4-d47e-4090-8524-53af714ba5f8",
+      "date": "2026-08-31",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": ""
+    },
+    {
+      "id": "4b39598c-1782-44df-9b1d-70b428f04f84",
+      "date": "2026-10-24",
+      "startTime": "00:00",
+      "endTime": "00:00",
+      "venue": "Otro",
+      "type": "mañana",
+      "category": "partido",
+      "opponent": "CV Alicante 2000 - A",
+      "homeAway": "fuera",
+      "notes": ""
+    },
+    {
+      "id": "4cd98d19-e390-4f3f-8e07-c76abc96a3bd",
+      "date": "2026-08-24",
+      "startTime": "16:30",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "4dea4198-426b-45c3-91c8-e87bb2f2af87",
+      "date": "2026-09-26",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "partido",
+      "opponent": "XÁTIVA",
+      "homeAway": "casa",
+      "notes": ""
+    },
+    {
+      "id": "4e33f0de-7232-4993-9dc4-923d6df25e01",
+      "date": "2026-08-19",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": ""
+    },
+    {
+      "id": "50920652-17ec-492f-8d34-28e4e257248b",
+      "date": "2026-08-03",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": ""
+    },
+    {
+      "id": "51bc49fb-407e-4fa2-8b38-d85fbcf3958c",
+      "date": "2026-08-14",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": ""
+    },
+    {
+      "id": "5b9de269-b438-48d0-bc41-3a0cc145c2ce",
+      "date": "2026-08-28",
+      "startTime": "10:30",
+      "endTime": "13:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "5d4f0780-adb2-4450-ae1c-f378e7fad578",
+      "date": "2026-08-07",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": ""
+    },
+    {
+      "id": "666810c7-593b-497a-b649-6f4efc8b1554",
+      "date": "2026-08-31",
+      "startTime": "11:00",
+      "endTime": "13:00",
+      "venue": "Silvia Martínez",
+      "type": "mañana",
+      "notes": ""
+    },
+    {
+      "id": "6bc55de8-795b-4cfe-9e3b-a97d8146f227",
+      "date": "2026-08-29",
+      "startTime": "11:30",
+      "endTime": "13:30",
+      "venue": "Otro",
+      "type": "mañana",
+      "category": "partido",
+      "opponent": "Daya Nueva",
+      "homeAway": "fuera",
+      "notes": ""
+    },
+    {
+      "id": "6e7ff044-9ef7-43bb-8d1f-c6c23519ea62",
+      "date": "2026-08-05",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": ""
+    },
+    {
+      "id": "88d2c022-5e9a-4044-9326-bc9b3dab92b6",
+      "date": "2026-09-07",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "93918a2b-bb60-4eff-b39d-391e1724a9c5",
+      "date": "2026-08-21",
+      "startTime": "16:30",
+      "endTime": "18:30",
+      "venue": "Lara González",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "9f26c041-d811-4bae-a40d-63af6ffcca8e",
+      "date": "2026-08-17",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "notes": ""
+    },
+    {
+      "id": "a3d1b068-fdcd-466a-b938-ecbeedd892c6",
+      "date": "2026-09-23",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "venue": "Lara González",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "b8bda725-a9bd-4f99-b40b-2db7cdcd67bc",
+      "date": "2026-09-28",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "bd5fd725-5ef3-4541-9566-707dc3c3d60f",
+      "date": "2026-08-24",
+      "startTime": "11:00",
+      "endTime": "13:00",
+      "venue": "Silvia Martínez",
+      "type": "mañana",
+      "notes": ""
+    },
+    {
+      "id": "be7cfa19-57bb-4aef-ba32-6b053fe9b182",
+      "date": "2026-09-18",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "venue": "Lara González",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    },
+    {
+      "id": "dba6312d-1a02-43fb-b312-e9b9ddc659db",
+      "date": "2026-09-09",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "venue": "Silvia Martínez",
+      "type": "tarde",
+      "category": "entrenamiento",
+      "opponent": "",
+      "homeAway": "",
+      "notes": ""
+    }
+  ],
+  "trips": [
+    {
+      "id": "04e835d1-c886-4cc6-80e0-1104013e7e7e",
+      "sessionId": "0968cde7-0d6a-4424-8ee6-7b5e4481f5ad",
+      "driverId": "d89db7de-d5d5-4d77-97cc-3f41827d0fa8",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "17:00",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "055125dd-c08a-492a-9791-81bccd9b3fde",
+      "sessionId": "40dcf025-32e3-4a2c-9b0b-971a2b196d41",
+      "driverId": "e1856451-03b6-43fd-b4e5-eb5d211d98a2",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "17:00",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "087dc240-85e4-47cd-97f0-b8c69f4e0c93",
+      "sessionId": "51bc49fb-407e-4fa2-8b38-d85fbcf3958c",
+      "driverId": "d89db7de-d5d5-4d77-97cc-3f41827d0fa8",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "17:00",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "14516ee2-340b-40ff-a270-b07afa0e01be",
+      "sessionId": "9f26c041-d811-4bae-a40d-63af6ffcca8e",
+      "driverId": "fc9bd284-c5b8-4512-8a95-5c834ffddd3e",
+      "tripType": "vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "186bec6f-bfec-4acf-a00a-32ee8c899ea5",
+      "sessionId": "5b9de269-b438-48d0-bc41-3a0cc145c2ce",
+      "driverId": "218448fb-bcb8-44f5-8f04-6923652662bf",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "no_va"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "no_va"
+        }
+      ],
+      "pickupTime": "17:00",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "50685a24-4a96-4235-957d-58dabb67ca8f",
+      "sessionId": "4e33f0de-7232-4993-9dc4-923d6df25e01",
+      "driverId": "218448fb-bcb8-44f5-8f04-6923652662bf",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "no_va"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "no_va"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "16:30",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "51eca841-f962-461f-aeb7-4120d79cd5be",
+      "sessionId": "344faf98-3934-4bb0-bd4d-ca46e39012ed",
+      "driverId": "218448fb-bcb8-44f5-8f04-6923652662bf",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "no_va"
+        }
+      ],
+      "pickupTime": "17:00",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "5691b822-e07a-41ba-a4e8-329015b5a162",
+      "sessionId": "93918a2b-bb60-4eff-b39d-391e1724a9c5",
+      "driverId": "218448fb-bcb8-44f5-8f04-6923652662bf",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "no_va"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "no_va"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "no_va"
+        }
+      ],
+      "pickupTime": "16:10",
+      "dropoffTime": "18:30",
+      "notes": ""
+    },
+    {
+      "id": "6dd9826a-befd-44f8-90c0-89451cea7472",
+      "sessionId": "4cd98d19-e390-4f3f-8e07-c76abc96a3bd",
+      "driverId": "fc9bd284-c5b8-4512-8a95-5c834ffddd3e",
+      "tripType": "vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "no_va"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "no_va"
+        }
+      ],
+      "pickupTime": "16:30",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "7269d9e6-2f91-41e3-bfbc-f282a32c02e7",
+      "sessionId": "2ffba38b-4390-426d-aed7-292c55735907",
+      "driverId": "e1856451-03b6-43fd-b4e5-eb5d211d98a2",
+      "tripType": "vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "79d4d96d-47f1-4ff5-a4be-608776f1773a",
+      "sessionId": "b8bda725-a9bd-4f99-b40b-2db7cdcd67bc",
+      "driverId": "fc9bd284-c5b8-4512-8a95-5c834ffddd3e",
+      "tripType": "vuelta",
+      "kids": [
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "88a69703-3eda-48bb-a336-4915b305d97e",
+      "sessionId": "16dda7f8-682a-4956-a043-90791e2713e1",
+      "driverId": "218448fb-bcb8-44f5-8f04-6923652662bf",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "18:30",
+      "dropoffTime": "21:30",
+      "notes": ""
+    },
+    {
+      "id": "9176cdc0-feec-42c2-bece-54fac0a2a31b",
+      "sessionId": "05d9abdd-7271-4548-9ceb-54dc2712257a",
+      "driverId": "fd04464f-8de5-4708-a57e-0f49c78cebf2",
+      "tripType": "ida",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "no_va"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "no_va"
+        }
+      ],
+      "pickupTime": "11:00",
+      "dropoffTime": "",
+      "notes": ""
+    },
+    {
+      "id": "9a454b4e-d5fe-4be9-b584-51167338fa1a",
+      "sessionId": "0b35a5e3-50b5-43dc-9bb2-b8f3ae7962b0",
+      "driverId": "fd04464f-8de5-4708-a57e-0f49c78cebf2",
+      "tripType": "ida",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "11:00",
+      "dropoffTime": "",
+      "notes": ""
+    },
+    {
+      "id": "aaf45509-d514-428f-8763-15976329817c",
+      "sessionId": "0f336083-97ce-464a-a978-b8267b1ec876",
+      "driverId": "218448fb-bcb8-44f5-8f04-6923652662bf",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "17:00",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "c0d2eae3-bc2c-4267-a3e5-91b3a1132524",
+      "sessionId": "a3d1b068-fdcd-466a-b938-ecbeedd892c6",
+      "driverId": "e1856451-03b6-43fd-b4e5-eb5d211d98a2",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "17:00",
+      "dropoffTime": "19:00",
+      "notes": "Blanca si está"
+    },
+    {
+      "id": "c1c39716-ff40-4f02-bf41-b8a3a401eb71",
+      "sessionId": "22c5ed59-c54f-40e4-9706-0129be6efb5b",
+      "driverId": "e1856451-03b6-43fd-b4e5-eb5d211d98a2",
+      "tripType": "vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "c23dbd6e-85af-433d-bbc3-f3466ed30319",
+      "sessionId": "be7cfa19-57bb-4aef-ba32-6b053fe9b182",
+      "driverId": "218448fb-bcb8-44f5-8f04-6923652662bf",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "17:00",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "d3a7fd71-c8a1-40ee-bcd6-63bf1af1ab68",
+      "sessionId": "4a3732d4-d47e-4090-8524-53af714ba5f8",
+      "driverId": "d89db7de-d5d5-4d77-97cc-3f41827d0fa8",
+      "tripType": "vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "d89b4005-884c-4635-aba2-a6c1fb35d3d1",
+      "sessionId": "dba6312d-1a02-43fb-b312-e9b9ddc659db",
+      "driverId": "e1856451-03b6-43fd-b4e5-eb5d211d98a2",
+      "tripType": "ida_y_vuelta",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "17:00",
+      "dropoffTime": "19:00",
+      "notes": ""
+    },
+    {
+      "id": "e61ad35b-e30a-4ee7-908b-c533492ba863",
+      "sessionId": "bd5fd725-5ef3-4541-9566-707dc3c3d60f",
+      "driverId": "218448fb-bcb8-44f5-8f04-6923652662bf",
+      "tripType": "ida",
+      "kids": [
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "11:00",
+      "dropoffTime": "",
+      "notes": ""
+    },
+    {
+      "id": "e7fda42a-44de-4d2d-9b94-847659bc42f5",
+      "sessionId": "666810c7-593b-497a-b649-6f4efc8b1554",
+      "driverId": "fc9bd284-c5b8-4512-8a95-5c834ffddd3e",
+      "tripType": "ida",
+      "kids": [
+        {
+          "kidId": "2697768f-a465-4f7e-99b3-bcbca90356b8",
+          "status": "no_va"
+        },
+        {
+          "kidId": "c42a74cf-0c1b-4690-aaf9-6a052d358a99",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "3120bc97-f8ff-42b2-b17d-074571f687b4",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "8ccf6be5-d325-41c1-ad64-ee1042cd650d",
+          "status": "confirmada"
+        },
+        {
+          "kidId": "fff5617a-2e0c-4219-a20e-a33838aec04d",
+          "status": "confirmada"
+        }
+      ],
+      "pickupTime": "11:00",
+      "dropoffTime": "",
+      "notes": ""
+    }
+  ],
+  "settings": [
+    {
+      "id": "main",
+      "activeSeason": "2026-2027",
+      "activeMonth": "2026-09",
+      "vacations": [
+        {
+          "id": "b922e5be-2b47-46b6-a37f-3a383ffc765a",
+          "driverId": "fd04464f-8de5-4708-a57e-0f49c78cebf2",
+          "startDate": "2026-08-18",
+          "endDate": "2026-08-30",
+          "note": "Vacaciones"
+        }
+      ],
+      "holidays": [],
+      "darkMode": true,
+      "seeded": true
+    }
+  ]
+}
