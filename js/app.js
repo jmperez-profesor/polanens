@@ -1597,12 +1597,6 @@ function bindFormsAndButtons() {
   $("#kids-admin-list").addEventListener("click", handleKidDelete);
   $("#export-json").addEventListener("click", exportJson);
   $("#import-json").addEventListener("change", (e) => importJson(e.target.files[0]));
-  $("#duplicate-month").addEventListener("click", duplicatePreviousMonth);
-  $("#load-seed").addEventListener("click", async () => {
-    await seedAugustData({ force: true, dataLayer: dataApi });
-    await loadState();
-    renderAll();
-  });
 }
 
 async function initPWA() {
