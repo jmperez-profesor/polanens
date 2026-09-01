@@ -1,4 +1,5 @@
-const CACHE_NAME = "reparto-volley-v3";
+const CACHE_NAME = "reparto-volley-v4";
+const APP_SHELL_VERSION = "1.1.2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -25,17 +26,30 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+function isAppAsset(url) {
+  return url.origin === self.location.origin && ASSETS.includes(url.pathname.replace(/^\//, "./"));
+}
+
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
+  const { request } = event;
+  const url = new URL(request.url);
+
+  if (isAppAsset(url)) {
+    event.respondWith(
+      fetch(request)
         .then((response) => {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           return response;
         })
-        .catch(() => caches.match("./index.html"));
-    })
+        .catch(() =>
+          caches.match(request).then((cached) => cached || caches.match("./index.html"))
+        )
+    );
+    return;
+  }
+
+  event.respondWith(
+    fetch(request).catch(() => caches.match(request).then((cached) => cached || caches.match("./index.html")))
   );
 });

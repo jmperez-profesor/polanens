@@ -3,7 +3,7 @@ import { seedAugustData } from "./seed.js";
 import { supabase } from "./supabase-client.js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
-const APP_VERSION = "v1.1.1";
+const APP_VERSION = "v1.1.2";
 
 const state = {
   settings: null,
@@ -124,20 +124,43 @@ function mapTripToRemote(trip) {
 const dataApi = {
   uid: db.uid,
 
-  async init() {
+  async init(retries = 3) {
     await db.init();
-    if (!isSupabaseConfigured()) return;
+    remoteReady = false;
 
-    const settingsProbe = await supabase.from("settings").select("id").limit(1);
-    if (settingsProbe.error) {
-      const appSettingsProbe = await supabase.from("app_settings").select("id").limit(1);
-      if (appSettingsProbe.error) return;
-      settingsTable = "app_settings";
+    if (!isSupabaseConfigured()) {
+      console.warn("[Polanens] Supabase no configurado. Modo offline.");
+      return;
     }
 
-    const schemaProbe = await supabase.from("sessions").select("start_time").limit(1);
-    normalizedSchema = !schemaProbe.error;
-    remoteReady = true;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const appSettingsProbe = await supabase.from("app_settings").select("id").limit(1);
+        if (!appSettingsProbe.error) {
+          settingsTable = "app_settings";
+        } else {
+          const settingsProbe = await supabase.from("settings").select("id").limit(1);
+          if (!settingsProbe.error) {
+            settingsTable = "settings";
+          } else {
+            console.warn(`[Polanens] Intento ${attempt}/${retries}: no se detectó app_settings ni settings.`);
+            await new Promise((r) => setTimeout(r, 800));
+            continue;
+          }
+        }
+
+        const schemaProbe = await supabase.from("sessions").select("start_time").limit(1);
+        normalizedSchema = !schemaProbe.error;
+        remoteReady = true;
+        console.log(`[Polanens] Conectado a Supabase (intento ${attempt}). settingsTable=${settingsTable}, normalizedSchema=${normalizedSchema}`);
+        return;
+      } catch (err) {
+        console.error(`[Polanens] Intento ${attempt}/${retries}: error conectando a Supabase.`, err);
+        await new Promise((r) => setTimeout(r, 800));
+      }
+    }
+
+    console.warn("[Polanens] No se pudo conectar a Supabase. Trabajando en modo offline.");
   },
 
   async getAll(store) {
@@ -1593,7 +1616,10 @@ async function initPWA() {
 }
 
 function initRealtime() {
-  if (!remoteReady) return;
+  if (!remoteReady) {
+    console.log("[Polanens] Realtime omitido (sin conexión remota).");
+    return;
+  }
   if (realtimeChannel) supabase.removeChannel(realtimeChannel);
   let channel = supabase
     .channel("carpool-sync")
@@ -1610,7 +1636,9 @@ function initRealtime() {
       .on("postgres_changes", { event: "*", schema: "public", table: "holidays" }, scheduleRealtimeRefresh);
   }
 
-  realtimeChannel = channel.subscribe();
+  realtimeChannel = channel.subscribe((status) => {
+    console.log("[Polanens] Realtime status:", status);
+  });
 }
 
 function bindRealtimeLifecycle() {
@@ -1622,9 +1650,23 @@ function bindRealtimeLifecycle() {
 }
 
 async function init() {
+  console.log(`[Polanens] Iniciando versión ${APP_VERSION}`);
   await dataApi.init();
-  const settings = await dataApi.getSettings();
-  if (!settings?.seeded) await seedAugustData({ dataLayer: dataApi });
+
+  if (remoteReady) {
+    const settings = await dataApi.getSettings();
+    if (!settings?.seeded) {
+      await dataApi.saveSettings({ seeded: true });
+      console.log("[Polanens] Marcado settings.seeded=true en Supabase.");
+    }
+  } else {
+    const settings = await db.getSettings();
+    if (!settings?.seeded) {
+      console.warn("[Polanens] Sin conexión. Sembrando datos de ejemplo en local.");
+      await seedAugustData({ dataLayer: db });
+    }
+  }
+
   await loadState();
   await ensureRamonDriver();
   await ensureValentinaKid();
@@ -1637,6 +1679,7 @@ async function init() {
   toggleMatchFields();
   toggleModalMatchFields();
   await initPWA();
+  console.log(`[Polanens] Init completado. remoteReady=${remoteReady}, drivers=${state.drivers.length}, kids=${state.kids.length}, sessions=${state.sessions.length}, trips=${state.trips.length}`);
 }
 
 init();
