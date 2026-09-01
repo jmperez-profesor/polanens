@@ -1495,54 +1495,87 @@ function occurrenceInMonth(date) {
 }
 
 async function duplicatePreviousMonth() {
-  const targetMonth = state.settings.activeMonth;
-  const sourceMonth = addMonths(targetMonth, -1);
-  const { year: targetYear, month: targetM } = monthParts(targetMonth);
-  const sourceSessions = state.sessions.filter((s) => s.date.startsWith(sourceMonth));
-  if (!sourceSessions.length) return;
-  const existing = state.sessions.filter((s) => s.date.startsWith(targetMonth));
-  const existingKey = new Set(existing.map((s) => `${s.date}|${s.startTime}|${s.endTime}|${s.type}`));
-
-  const createdSessions = [];
-  const sourceToTarget = new Map();
-
-  for (const src of sourceSessions) {
-    const { weekday, nth } = occurrenceInMonth(src.date);
-    const targetDate = nthWeekdayOfMonth(targetYear, targetM, weekday, nth);
-    if (!targetDate) continue;
-    const key = `${targetDate}|${src.startTime}|${src.endTime}|${src.type}`;
-    let target = existing.find((s) => `${s.date}|${s.startTime}|${s.endTime}|${s.type}` === key);
-    if (!target && !existingKey.has(key)) {
-      target = {
-        id: dataApi.uid(),
-        date: targetDate,
-        startTime: src.startTime,
-        endTime: src.endTime,
-        venue: src.venue,
-        type: src.type,
-        category: src.category || "entrenamiento",
-        opponent: src.opponent || "",
-        homeAway: src.homeAway || "",
-        notes: src.notes,
-      };
-      createdSessions.push(target);
-      existingKey.add(key);
+  console.log("[Polanens] Duplicar mes anterior pulsado");
+  try {
+    const targetMonth = state.settings?.activeMonth;
+    if (!targetMonth) {
+      console.warn("[Polanens] No hay mes activo definido.");
+      alert("No hay un mes activo definido. Selecciona un mes primero.");
+      return;
     }
-    if (target) sourceToTarget.set(src.id, target.id);
+
+    const sourceMonth = addMonths(targetMonth, -1);
+    const { year: targetYear, month: targetM } = monthParts(targetMonth);
+    const sourceSessions = state.sessions.filter((s) => s.date.startsWith(sourceMonth));
+
+    console.log(`[Polanens] Duplicando de ${sourceMonth} a ${targetMonth}. Sesiones fuente: ${sourceSessions.length}`);
+
+    if (!sourceSessions.length) {
+      console.warn(`[Polanens] No hay sesiones en ${sourceMonth} para duplicar.`);
+      alert(`No hay sesiones en ${monthLabel(sourceMonth)} para duplicar a ${monthLabel(targetMonth)}.`);
+      return;
+    }
+
+    if (!confirm(`Se van a duplicar ${sourceSessions.length} sesiones de ${monthLabel(sourceMonth)} a ${monthLabel(targetMonth)}. ¿Continuar?`)) {
+      console.log("[Polanens] Duplicación cancelada por el usuario.");
+      return;
+    }
+
+    const existing = state.sessions.filter((s) => s.date.startsWith(targetMonth));
+    const existingKey = new Set(existing.map((s) => `${s.date}|${s.startTime}|${s.endTime}|${s.type}`));
+
+    const createdSessions = [];
+    const sourceToTarget = new Map();
+
+    for (const src of sourceSessions) {
+      const { weekday, nth } = occurrenceInMonth(src.date);
+      const targetDate = nthWeekdayOfMonth(targetYear, targetM, weekday, nth);
+      if (!targetDate) continue;
+      const key = `${targetDate}|${src.startTime}|${src.endTime}|${src.type}`;
+      let target = existing.find((s) => `${s.date}|${s.startTime}|${s.endTime}|${s.type}` === key);
+      if (!target && !existingKey.has(key)) {
+        target = {
+          id: dataApi.uid(),
+          date: targetDate,
+          startTime: src.startTime,
+          endTime: src.endTime,
+          venue: src.venue,
+          type: src.type,
+          category: src.category || "entrenamiento",
+          opponent: src.opponent || "",
+          homeAway: src.homeAway || "",
+          notes: src.notes,
+        };
+        createdSessions.push(target);
+        existingKey.add(key);
+      }
+      if (target) sourceToTarget.set(src.id, target.id);
+    }
+
+    console.log(`[Polanens] Sesiones a crear: ${createdSessions.length}`);
+
+    if (createdSessions.length) await dataApi.bulkPut("sessions", createdSessions);
+    await loadState();
+
+    const sourceTrips = state.trips.filter((t) => sourceToTarget.has(t.sessionId));
+    const copiedTrips = sourceTrips.map((t) => ({
+      ...t,
+      id: dataApi.uid(),
+      sessionId: sourceToTarget.get(t.sessionId),
+    }));
+
+    console.log(`[Polanens] Viajes a copiar: ${copiedTrips.length}`);
+
+    if (copiedTrips.length) await dataApi.bulkPut("trips", copiedTrips);
+    await loadState();
+    renderAll();
+
+    alert(`Duplicación completada: ${createdSessions.length} sesiones y ${copiedTrips.length} viajes creados.`);
+    console.log(`[Polanens] Duplicación completada: ${createdSessions.length} sesiones, ${copiedTrips.length} viajes.`);
+  } catch (err) {
+    console.error("[Polanens] Error al duplicar mes anterior:", err);
+    alert("Error al duplicar el mes anterior. Revisa la consola para más detalles.");
   }
-
-  if (createdSessions.length) await dataApi.bulkPut("sessions", createdSessions);
-  await loadState();
-
-  const sourceTrips = state.trips.filter((t) => sourceToTarget.has(t.sessionId));
-  const copiedTrips = sourceTrips.map((t) => ({
-    ...t,
-    id: dataApi.uid(),
-    sessionId: sourceToTarget.get(t.sessionId),
-  }));
-  if (copiedTrips.length) await dataApi.bulkPut("trips", copiedTrips);
-  await loadState();
-  renderAll();
 }
 
 function fillTripFormFromSelected() {
