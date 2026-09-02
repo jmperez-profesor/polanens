@@ -200,6 +200,16 @@ textarea {
   font-size: 0.66rem;
 }
 
+.day.day-inactive {
+  min-height: 32px;
+  padding: 0.25rem;
+  opacity: 0.75;
+}
+
+.day.day-inactive .num {
+  font-size: 0.7rem;
+}
+
 .session-card {
   margin-top: 0.35rem;
   padding: 0.32rem;
@@ -330,5 +340,9 @@ textarea {
 
   .calendar-grid {
     gap: 0.25rem;
+  }
+
+  .day.day-inactive {
+    min-height: 24px;
   }
 }

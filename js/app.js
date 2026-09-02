@@ -679,15 +679,20 @@ function renderCalendar() {
   dayNames.forEach((d) => {
     html += `<div class="day-name">${d}</div>`;
   });
-  for (let i = 1; i < firstIso; i += 1) html += `<div class="day"></div>`;
+  for (let i = 1; i < firstIso; i += 1) {
+    const inactive = i === 2 || i === 4 || i === 7 ? " day-inactive" : "";
+    html += `<div class="day${inactive}"></div>`;
+  }
 
   for (let day = 1; day <= daysInMonth; day += 1) {
     const dateObj = new Date(start.getFullYear(), start.getMonth(), day);
     const date = formatDate(dateObj);
     const daySessions = sessionByDate[date] || [];
     const holiday = (state.settings.holidays || []).find((h) => h.date === date);
+    const jsDay = dateObj.getDay();
     const classes = ["day"];
     if (holiday) classes.push("is-holiday");
+    if (jsDay === 0 || jsDay === 2 || jsDay === 4) classes.push("day-inactive");
     if (month === currentMonth) {
       const ws = weekStart(dateObj);
       if (ws.getTime() === currentWeekStart.getTime()) classes.push("is-current-week");
