@@ -920,12 +920,26 @@ function bindTabs() {
   });
 }
 
+function shiftMonth(delta) {
+  const input = $("#active-month");
+  const current = input.value;
+  if (!current) return;
+  const [year, month] = current.split("-").map(Number);
+  const date = new Date(year, month - 1 + delta, 1);
+  const newValue = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  input.value = newValue;
+  input.dispatchEvent(new Event("change"));
+}
+
 function bindInputs() {
   $("#active-month").addEventListener("change", async (e) => {
     await dataApi.saveSettings({ activeMonth: e.target.value });
     await loadState();
     renderAll();
   });
+
+  $("#prev-month").addEventListener("click", () => shiftMonth(-1));
+  $("#next-month").addEventListener("click", () => shiftMonth(1));
 
   $("#toggle-dark").addEventListener("click", async () => {
     await dataApi.saveSettings({ darkMode: !state.settings.darkMode });

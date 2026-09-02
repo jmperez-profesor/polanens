@@ -12,10 +12,14 @@
     <header class="topbar">
       <h1>Reparto Voleibol · Santa Pola</h1>
       <div class="topbar-actions">
-        <label class="inline">
-          <span>Mes</span>
-          <input id="active-month" type="month" />
-        </label>
+        <div class="inline month-nav">
+          <button id="prev-month" class="btn ghost month-arrow" aria-label="Mes anterior" title="Mes anterior">◀</button>
+          <label class="inline">
+            <span>Mes</span>
+            <input id="active-month" type="month" />
+          </label>
+          <button id="next-month" class="btn ghost month-arrow" aria-label="Mes siguiente" title="Mes siguiente">▶</button>
+        </div>
         <button id="toggle-dark" class="btn ghost">🌙</button>
       </div>
     </header>
