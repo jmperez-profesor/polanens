@@ -679,15 +679,20 @@ function renderCalendar() {
   dayNames.forEach((d) => {
     html += `<div class="day-name">${d}</div>`;
   });
-  for (let i = 1; i < firstIso; i += 1) html += `<div class="day"></div>`;
+  for (let i = 1; i < firstIso; i += 1) {
+    const inactive = i === 2 || i === 4 || i === 7 ? " day-inactive" : "";
+    html += `<div class="day${inactive}"></div>`;
+  }
 
   for (let day = 1; day <= daysInMonth; day += 1) {
     const dateObj = new Date(start.getFullYear(), start.getMonth(), day);
     const date = formatDate(dateObj);
     const daySessions = sessionByDate[date] || [];
     const holiday = (state.settings.holidays || []).find((h) => h.date === date);
+    const jsDay = dateObj.getDay();
     const classes = ["day"];
     if (holiday) classes.push("is-holiday");
+    if (jsDay === 0 || jsDay === 2 || jsDay === 4) classes.push("day-inactive");
     if (month === currentMonth) {
       const ws = weekStart(dateObj);
       if (ws.getTime() === currentWeekStart.getTime()) classes.push("is-current-week");
@@ -915,12 +920,26 @@ function bindTabs() {
   });
 }
 
+function shiftMonth(delta) {
+  const input = $("#active-month");
+  const current = input.value;
+  if (!current) return;
+  const [year, month] = current.split("-").map(Number);
+  const date = new Date(year, month - 1 + delta, 1);
+  const newValue = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  input.value = newValue;
+  input.dispatchEvent(new Event("change"));
+}
+
 function bindInputs() {
   $("#active-month").addEventListener("change", async (e) => {
     await dataApi.saveSettings({ activeMonth: e.target.value });
     await loadState();
     renderAll();
   });
+
+  $("#prev-month").addEventListener("click", () => shiftMonth(-1));
+  $("#next-month").addEventListener("click", () => shiftMonth(1));
 
   $("#toggle-dark").addEventListener("click", async () => {
     await dataApi.saveSettings({ darkMode: !state.settings.darkMode });
