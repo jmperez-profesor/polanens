@@ -219,8 +219,6 @@ const dataApi = {
           active_season: local.activeSeason,
           active_month: local.activeMonth,
           dark_mode: local.darkMode,
-          compact_inactive_days: !!local.compactInactiveDays,
-          show_complete_weeks: !!local.showCompleteWeeks,
         };
         const { data: created } = await supabase.from(settingsTable).upsert(seedRow).select().single();
         const next = created
@@ -288,10 +286,14 @@ const dataApi = {
           active_season: next.activeSeason,
           active_month: next.activeMonth,
           dark_mode: !!next.darkMode,
-          compact_inactive_days: !!next.compactInactiveDays,
-          show_complete_weeks: !!next.showCompleteWeeks,
         };
-        await supabase.from(settingsTable).upsert(baseRow);
+        if (patch.compactInactiveDays !== undefined) baseRow.compact_inactive_days = !!patch.compactInactiveDays;
+        if (patch.showCompleteWeeks !== undefined) baseRow.show_complete_weeks = !!patch.showCompleteWeeks;
+        const { error: settingsError } = await supabase.from(settingsTable).upsert(baseRow);
+        if (settingsError) {
+          console.warn("[Polanens] No se pudo guardar settings en Supabase:", settingsError);
+          return db.saveSettings(patch);
+        }
 
         if (patch.vacations) {
           await supabase.from("driver_vacations").delete().not("id", "is", null);
@@ -685,22 +687,32 @@ function renderCalendar() {
   const { year, month: mm } = monthParts(month);
   const monthStart = new Date(year, mm - 1, 1);
   const monthEnd = new Date(year, mm, 0);
+  const firstIso = weekJsToIso(monthStart.getDay());
+  const daysInMonth = monthEnd.getDate();
   const currentMonth = currentMonthString();
   const now = new Date();
   const currentWeekStart = weekStart(now);
 
   let rangeStart = monthStart;
   let rangeEnd = monthEnd;
+  let leadingPads = 0;
   if (state.settings.showCompleteWeeks) {
     rangeStart = weekStart(monthStart);
     rangeEnd = new Date(weekStart(monthEnd));
     rangeEnd.setDate(rangeEnd.getDate() + 6);
+  } else {
+    leadingPads = firstIso - 1;
   }
 
   let html = "";
   dayNames.forEach((d) => {
     html += `<div class="day-name">${d}</div>`;
   });
+
+  for (let i = 1; i <= leadingPads; i += 1) {
+    const inactive = state.settings.compactInactiveDays && (i === 2 || i === 4 || i === 7) ? " day-inactive" : "";
+    html += `<div class="day${inactive}"></div>`;
+  }
 
   const cursor = new Date(rangeStart);
   while (cursor <= rangeEnd) {
