@@ -46,6 +46,8 @@ function defaultSettings() {
     vacations: [],
     holidays: [],
     darkMode: false,
+    compactInactiveDays: false,
+    showCompleteWeeks: false,
     seeded: false,
   };
 }
@@ -217,6 +219,8 @@ const dataApi = {
           active_season: local.activeSeason,
           active_month: local.activeMonth,
           dark_mode: local.darkMode,
+          compact_inactive_days: !!local.compactInactiveDays,
+          show_complete_weeks: !!local.showCompleteWeeks,
         };
         const { data: created } = await supabase.from(settingsTable).upsert(seedRow).select().single();
         const next = created
@@ -225,6 +229,8 @@ const dataApi = {
               activeSeason: created.active_season ?? local.activeSeason,
               activeMonth: created.active_month ?? local.activeMonth,
               darkMode: created.dark_mode ?? local.darkMode,
+              compactInactiveDays: created.compact_inactive_days ?? local.compactInactiveDays,
+              showCompleteWeeks: created.show_complete_weeks ?? local.showCompleteWeeks,
             }
           : local;
         await db.put("settings", next);
@@ -251,6 +257,8 @@ const dataApi = {
       activeSeason: data.active_season ?? local.activeSeason,
       activeMonth: data.active_month ?? local.activeMonth,
       darkMode: data.dark_mode ?? local.darkMode,
+      compactInactiveDays: data.compact_inactive_days ?? local.compactInactiveDays,
+      showCompleteWeeks: data.show_complete_weeks ?? local.showCompleteWeeks,
       vacations: (vacations || []).map((v) => ({
         id: v.id,
         driverId: v.driver_id,
@@ -280,6 +288,8 @@ const dataApi = {
           active_season: next.activeSeason,
           active_month: next.activeMonth,
           dark_mode: !!next.darkMode,
+          compact_inactive_days: !!next.compactInactiveDays,
+          show_complete_weeks: !!next.showCompleteWeeks,
         };
         await supabase.from(settingsTable).upsert(baseRow);
 
@@ -652,6 +662,10 @@ function renderTopBindings() {
   $("#active-month").value = state.settings.activeMonth;
   document.body.classList.toggle("dark", !!state.settings.darkMode);
   $("#app-version").textContent = `Reparto Voleibol ${APP_VERSION}`;
+  const compactInactive = $("#opt-compact-inactive");
+  const completeWeeks = $("#opt-complete-weeks");
+  if (compactInactive) compactInactive.checked = !!state.settings.compactInactiveDays;
+  if (completeWeeks) completeWeeks.checked = !!state.settings.showCompleteWeeks;
 }
 
 function renderCalendar() {
@@ -668,37 +682,43 @@ function renderCalendar() {
     return acc;
   }, {});
 
-  const { start, end } = startEndForMonth(month);
-  const firstIso = weekJsToIso(start.getDay());
-  const daysInMonth = end.getDate();
+  const { year, month: mm } = monthParts(month);
+  const monthStart = new Date(year, mm - 1, 1);
+  const monthEnd = new Date(year, mm, 0);
   const currentMonth = currentMonthString();
   const now = new Date();
   const currentWeekStart = weekStart(now);
+
+  let rangeStart = monthStart;
+  let rangeEnd = monthEnd;
+  if (state.settings.showCompleteWeeks) {
+    rangeStart = weekStart(monthStart);
+    rangeEnd = new Date(weekStart(monthEnd));
+    rangeEnd.setDate(rangeEnd.getDate() + 6);
+  }
 
   let html = "";
   dayNames.forEach((d) => {
     html += `<div class="day-name">${d}</div>`;
   });
-  for (let i = 1; i < firstIso; i += 1) {
-    const inactive = i === 2 || i === 4 || i === 7 ? " day-inactive" : "";
-    html += `<div class="day${inactive}"></div>`;
-  }
 
-  for (let day = 1; day <= daysInMonth; day += 1) {
-    const dateObj = new Date(start.getFullYear(), start.getMonth(), day);
-    const date = formatDate(dateObj);
-    const daySessions = sessionByDate[date] || [];
-    const holiday = (state.settings.holidays || []).find((h) => h.date === date);
-    const jsDay = dateObj.getDay();
+  const cursor = new Date(rangeStart);
+  while (cursor <= rangeEnd) {
+    const date = formatDate(cursor);
+    const isOutsideMonth = cursor < monthStart || cursor > monthEnd;
+    const jsDay = cursor.getDay();
+    const daySessions = isOutsideMonth ? [] : sessionByDate[date] || [];
+    const holiday = isOutsideMonth ? null : (state.settings.holidays || []).find((h) => h.date === date);
     const classes = ["day"];
     if (holiday) classes.push("is-holiday");
-    if (jsDay === 0 || jsDay === 2 || jsDay === 4) classes.push("day-inactive");
-    if (month === currentMonth) {
-      const ws = weekStart(dateObj);
+    if (isOutsideMonth) classes.push("day-outside-month");
+    if (state.settings.compactInactiveDays && (jsDay === 0 || jsDay === 2 || jsDay === 4)) classes.push("day-inactive");
+    if (!isOutsideMonth && month === currentMonth) {
+      const ws = weekStart(cursor);
       if (ws.getTime() === currentWeekStart.getTime()) classes.push("is-current-week");
       else if (ws < currentWeekStart) classes.push("is-past-week");
     }
-    html += `<div class="${classes.join(" ")}"><div class="num">${day}</div>`;
+    html += `<div class="${classes.join(" ")}"><div class="num">${cursor.getDate()}</div>`;
     if (holiday) html += `<div class="meta">${esc(holiday.note || "Festivo")}</div>`;
     daySessions
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
@@ -726,6 +746,7 @@ function renderCalendar() {
         html += "</div>";
       });
     html += "</div>";
+    cursor.setDate(cursor.getDate() + 1);
   }
   $("#calendar-grid").innerHTML = html;
 }
@@ -945,6 +966,18 @@ function bindInputs() {
     await dataApi.saveSettings({ darkMode: !state.settings.darkMode });
     await loadState();
     renderAll();
+  });
+
+  $("#opt-compact-inactive")?.addEventListener("change", async (e) => {
+    await dataApi.saveSettings({ compactInactiveDays: e.target.checked });
+    state.settings = await dataApi.getSettings();
+    renderCalendar();
+  });
+
+  $("#opt-complete-weeks")?.addEventListener("change", async (e) => {
+    await dataApi.saveSettings({ showCompleteWeeks: e.target.checked });
+    state.settings = await dataApi.getSettings();
+    renderCalendar();
   });
 
   $("#trip-session").addEventListener("change", (e) => {
