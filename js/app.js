@@ -47,7 +47,7 @@ function defaultSettings() {
     holidays: [],
     darkMode: false,
     compactInactiveDays: false,
-    showCompleteWeeks: false,
+    showCompleteWeeks: true,
     seeded: false,
   };
 }
@@ -665,9 +665,7 @@ function renderTopBindings() {
   document.body.classList.toggle("dark", !!state.settings.darkMode);
   $("#app-version").textContent = `Reparto Voleibol ${APP_VERSION}`;
   const compactInactive = $("#opt-compact-inactive");
-  const completeWeeks = $("#opt-complete-weeks");
   if (compactInactive) compactInactive.checked = !!state.settings.compactInactiveDays;
-  if (completeWeeks) completeWeeks.checked = !!state.settings.showCompleteWeeks;
 }
 
 function renderCalendar() {
@@ -675,22 +673,13 @@ function renderCalendar() {
   const { year, month: mm } = monthParts(month);
   const monthStart = new Date(year, mm - 1, 1);
   const monthEnd = new Date(year, mm, 0);
-  const firstIso = weekJsToIso(monthStart.getDay());
-  const daysInMonth = monthEnd.getDate();
   const currentMonth = currentMonthString();
   const now = new Date();
   const currentWeekStart = weekStart(now);
 
-  let rangeStart = monthStart;
-  let rangeEnd = monthEnd;
-  let leadingPads = 0;
-  if (state.settings.showCompleteWeeks) {
-    rangeStart = weekStart(monthStart);
-    rangeEnd = new Date(weekStart(monthEnd));
-    rangeEnd.setDate(rangeEnd.getDate() + 6);
-  } else {
-    leadingPads = firstIso - 1;
-  }
+  const rangeStart = weekStart(monthStart);
+  const rangeEnd = new Date(weekStart(monthEnd));
+  rangeEnd.setDate(rangeEnd.getDate() + 6);
 
   const rangeStartStr = formatDate(rangeStart);
   const rangeEndStr = formatDate(rangeEnd);
@@ -715,11 +704,6 @@ function renderCalendar() {
   dayNames.forEach((d) => {
     html += `<div class="day-name">${d}</div>`;
   });
-
-  for (let i = 1; i <= leadingPads; i += 1) {
-    const inactive = state.settings.compactInactiveDays && (i === 2 || i === 4 || i === 7) ? " day-inactive" : "";
-    html += `<div class="day${inactive}"></div>`;
-  }
 
   const cursor = new Date(rangeStart);
   while (cursor <= rangeEnd) {
@@ -989,12 +973,6 @@ function bindInputs() {
 
   $("#opt-compact-inactive")?.addEventListener("change", async (e) => {
     await dataApi.saveSettings({ compactInactiveDays: e.target.checked });
-    state.settings = await dataApi.getSettings();
-    renderCalendar();
-  });
-
-  $("#opt-complete-weeks")?.addEventListener("change", async (e) => {
-    await dataApi.saveSettings({ showCompleteWeeks: e.target.checked });
     state.settings = await dataApi.getSettings();
     renderCalendar();
   });
