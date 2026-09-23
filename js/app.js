@@ -672,18 +672,6 @@ function renderTopBindings() {
 
 function renderCalendar() {
   const month = state.settings.activeMonth;
-  const { sessions, trips } = getMonthData(month);
-  const sessionByDate = sessions.reduce((acc, s) => {
-    acc[s.date] ||= [];
-    acc[s.date].push(s);
-    return acc;
-  }, {});
-  const tripsBySession = trips.reduce((acc, t) => {
-    acc[t.sessionId] ||= [];
-    acc[t.sessionId].push(t);
-    return acc;
-  }, {});
-
   const { year, month: mm } = monthParts(month);
   const monthStart = new Date(year, mm - 1, 1);
   const monthEnd = new Date(year, mm, 0);
@@ -704,6 +692,25 @@ function renderCalendar() {
     leadingPads = firstIso - 1;
   }
 
+  const rangeStartStr = formatDate(rangeStart);
+  const rangeEndStr = formatDate(rangeEnd);
+  const sessionsInRange = state.sessions.filter(
+    (s) => s.date >= rangeStartStr && s.date <= rangeEndStr
+  );
+  const sessionMapInRange = Object.fromEntries(sessionsInRange.map((s) => [s.id, s]));
+  const tripsInRange = state.trips.filter((t) => sessionMapInRange[t.sessionId]);
+
+  const sessionByDate = sessionsInRange.reduce((acc, s) => {
+    acc[s.date] ||= [];
+    acc[s.date].push(s);
+    return acc;
+  }, {});
+  const tripsBySession = tripsInRange.reduce((acc, t) => {
+    acc[t.sessionId] ||= [];
+    acc[t.sessionId].push(t);
+    return acc;
+  }, {});
+
   let html = "";
   dayNames.forEach((d) => {
     html += `<div class="day-name">${d}</div>`;
@@ -719,8 +726,8 @@ function renderCalendar() {
     const date = formatDate(cursor);
     const isOutsideMonth = cursor < monthStart || cursor > monthEnd;
     const jsDay = cursor.getDay();
-    const daySessions = isOutsideMonth ? [] : sessionByDate[date] || [];
-    const holiday = isOutsideMonth ? null : (state.settings.holidays || []).find((h) => h.date === date);
+    const daySessions = sessionByDate[date] || [];
+    const holiday = (state.settings.holidays || []).find((h) => h.date === date);
     const classes = ["day"];
     if (holiday) classes.push("is-holiday");
     if (isOutsideMonth) classes.push("day-outside-month");
